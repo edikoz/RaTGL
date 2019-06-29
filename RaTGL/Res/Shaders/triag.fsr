@@ -1,0 +1,14 @@
+#version 330 core
+
+in vec3 l, n;
+
+out vec4 out_color;
+
+uniform vec3 u_diffColor;
+
+void main(){
+	float c = max( dot( normalize( n ), normalize( l ) ), 0.0 );
+    vec3 diff = u_diffColor * c;
+
+	out_color = vec4(diff, 0.8);
+}

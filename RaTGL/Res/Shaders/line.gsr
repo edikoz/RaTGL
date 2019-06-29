@@ -1,0 +1,135 @@
+#version 330 core
+
+uniform mat4 u_viewMat;
+
+
+
+const vec3 c_lens_pos_0 = vec3((10.0)-(70.0), 0.0, 0.0);
+const vec3 c_lens_pos_1 = vec3((20.0)-(-70.0), 0.0, 0.0);
+
+
+layout(lines) in;
+layout(line_strip, max_vertices = 4) out;
+
+flat out vec4 col;
+out vec4 feedbackOut;
+
+const float eps = 1.0e-10;
+const float iters = 10.0;
+
+struct Ray{
+	vec3 origin, direction;
+} r0,r1,r2,r3;
+
+void emit(const vec4 c_Col, vec4 r_Out){
+	col = c_Col;
+	feedbackOut = r_Out;
+	gl_Position = u_viewMat * feedbackOut;
+	EmitVertex();
+}
+
+
+float polyAspher(float y0, const float p[8]){
+    return
+	(y0*y0/p[0]) / 
+	(1.0+sqrt( abs(1.0-(1.0+p[1])*y0*y0/(p[0]*p[0])) )) +
+	p[2]*y0*y0*y0*y0 + 
+	p[3]*y0*y0*y0*y0*y0*y0  + 
+	p[4]*y0*y0*y0*y0*y0*y0*y0*y0 + 
+	p[5]*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0 + 
+	p[6]*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0 + 
+	p[7]*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0;
+}
+
+vec4 aspherSystem(vec4 A, Ray ray, vec3 L0, const float p[8]){
+	return vec4(	A.w*ray.direction + ray.origin - A.xyz,
+					polyAspher(A.y - L0.y, p) + L0.x - A.x	);
+}
+
+float dPolyAspher(float y0, const float p[8]){
+    float sq = sqrt(1.0 - (1.0 + p[1])*y0*y0/(p[0]*p[0]));
+    float b = p[0] * (1.0 + sq);
+    float db = -(1.0 + p[1]) * y0 / (p[0]*sq);
+    float dx = ((2.0 * y0) * b - (y0*y0) * db) / (b * b) + 
+	4.0*p[2]*y0*y0*y0 + 
+	6.0*p[3]*y0*y0*y0*y0*y0 + 
+	8.0*p[4]*y0*y0*y0*y0*y0*y0*y0 + 
+	10.0*p[5]*y0*y0*y0*y0*y0*y0*y0*y0*y0 + 
+	12.0*p[6]*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0 + 
+	14.0*p[7]*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0*y0;
+	return dx;
+}
+
+mat4 jacPolyAspher(vec4 A, vec3 cosAng, vec3 L0, const float p[8]){
+    mat4 mx = mat4(0.0);
+    mx[0][0] = -1.0;
+    mx[1][1] = -1.0;
+    mx[2][2] = -1.0;
+    mx[3][0] = cosAng.x;
+    mx[3][1] = cosAng.y;
+    mx[3][2] = cosAng.z;
+    mx[0][3] = -1.0;
+    mx[1][3] = dPolyAspher(A.y - L0.y, p);
+	return mx;
+}
+
+vec3 aspherSolver(vec4 k0, Ray ray, vec3 L0, const float p[8]){
+    vec4 k1 = k0 - inverse(jacPolyAspher(k0, ray.direction, L0, p))*aspherSystem(k0, ray, L0, p);
+	float a = 0.0;
+    while (length(k1-k0) >= eps && a++ < iters){
+        k0 = k1;
+        k1 = k0 - inverse(jacPolyAspher(k0, ray.direction, L0, p))*aspherSystem(k0, ray, L0, p);
+    }
+	return k1.xyz;
+}
+
+float intersectSphereF(Ray ray, vec3 sph, const float r) {
+	vec3 k = ray.origin - sph;
+	float a = dot(ray.direction, ray.direction);
+	float b = dot(ray.direction, k);
+	float c = dot(k, k) - r * r;
+	float d = b * b - a * c;
+	float t = 0.0;
+	if (d > 0.0) {
+		float sd = sqrt(d);
+		float t1 = (-b - sd) / a;
+		float t2 = (-b + sd) / a;
+		float min_t = min(t1, t2);
+		float max_t = max(t1, t2);
+		//t = (min_t >= 0.0) ? min_t : max_t;
+		t = (r < 0.0) ? min_t : max_t;
+	}
+	return t;
+}
+
+
+void main() {
+
+
+	r0.origin = gl_in[0].gl_Position.xyz;
+	r0.direction = gl_in[1].gl_Position.xyz;
+
+	r1.origin = r0.direction*intersectSphereF(r0, c_lens_pos_0, (70.0)) + r0.origin;
+	vec3 norm0 = normalize(c_lens_pos_0 - r1.origin);
+	norm0.x = -abs(norm0.x);
+	r1.direction = refract(r0.direction, norm0, 0.5);
+
+	r2.origin = r1.direction*intersectSphereF(r1, c_lens_pos_1, (-70.0)) + r1.origin;
+	vec3 norm1 = normalize(c_lens_pos_1 - r2.origin);
+	norm1.x = -abs(norm1.x);
+	r2.direction = refract(r1.direction, norm1, 0.8);
+
+	r3.origin = (30.0 - r2.origin.x)*r2.direction / r2.direction.x + r2.origin;
+	r3.direction = r2.direction;
+
+
+//REPLACE_CHECK
+	{
+
+		emit(vec4(1.0, 0.0, 0.0, 1.0), vec4(r0.origin, 1.0));
+		emit(vec4(0.0, 1.0, 0.0, 1.0), vec4(r1.origin, 1.0));
+		emit(vec4(0.0, 0.0, 1.0, 1.0), vec4(r2.origin, 1.0));
+		emit(vec4(1.0, 1.0, 0.0, 1.0), vec4(r3.origin, 1.0));		
+	}
+	EndPrimitive();
+}
