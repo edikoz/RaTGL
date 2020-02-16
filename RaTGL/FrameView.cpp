@@ -1,13 +1,13 @@
 #include "stdafx.h"
 #include "resource.h"
-#include "Frame.h"
+#include "FrameView.h"
 
 #define WIDTH 640
 #define HEIGHT 480
 
-Frame *Frame::frame = nullptr;
+FrameView *FrameView::frameView = nullptr;
 
-LRESULT CALLBACK Frame::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK FrameView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
@@ -16,20 +16,20 @@ LRESULT CALLBACK Frame::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		int com = LOWORD(wParam);
 		switch (com) {
 		case IDM_NEW:
-			frame->workspace->newFile();
+			frameView->workspaceView->newFile();
 			break;
 		case IDM_SAVE:
-			frame->workspace->saveFile();
+			frameView->workspaceView->saveFile();
 			break;
 		case IDM_CONSOLE:
-			frame->toggleConsole();
+			frameView->toggleConsole();
 			break;
 		}
 		break;
 	}
 	case WM_SIZE:
-		if (frame)
-			frame->resize(LOWORD(lParam), HIWORD(lParam));
+		if (frameView)
+			frameView->resize(LOWORD(lParam), HIWORD(lParam));
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -40,17 +40,17 @@ LRESULT CALLBACK Frame::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 	return 0;
 }
 
-Frame::Frame()
+FrameView::FrameView()
 	: RaTwindow(L"RaTGL", proc, NULL, WS_OVERLAPPEDWINDOW, { 0,0,WIDTH,HEIGHT }, IDI_RATGL)
 {
-	frame = this;
+	frameView = this;
 	int height = createToolBar();
 	RECT rect;
 	GetClientRect(hwnd, &rect);
-	workspace = new WorkSpace(hwnd, { 0, height, rect.right - rect.left, rect.bottom - rect.top - height });
+	workspaceView = new WorkspaceView(hwnd, { 0, height, rect.right - rect.left, rect.bottom - rect.top - height });
 }
 
-HIMAGELIST Frame::insertImagesIntoList(int *resources, size_t size) {
+HIMAGELIST FrameView::insertImagesIntoList(int *resources, size_t size) {
 	HIMAGELIST hImageList = ImageList_Create(16, 16, ILC_COLOR24 | ILC_MASK, size, 0);
 
 	for (size_t i = 0; i < size; ++i) {
@@ -62,7 +62,7 @@ HIMAGELIST Frame::insertImagesIntoList(int *resources, size_t size) {
 	return hImageList;
 }
 
-long Frame::createToolBar() {
+long FrameView::createToolBar() {
 	const int STD_ImageListID = 0, RaT_ImageListID = 1;
 
 	hWndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, NULL,
@@ -76,7 +76,7 @@ long Frame::createToolBar() {
 	TBBUTTON tbButtons[] =
 	{
 		{ MAKELONG(STD_FILENEW,  STD_ImageListID), IDM_NEW, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"New" },
-		{ MAKELONG(STD_FILEOPEN, STD_ImageListID), IDM_OPEN, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Open" },
+		//{ MAKELONG(STD_FILEOPEN, STD_ImageListID), IDM_OPEN, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Open" },
 		{ MAKELONG(STD_FILESAVE, STD_ImageListID), IDM_SAVE, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Apply" },
 		{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
 		{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
@@ -85,7 +85,7 @@ long Frame::createToolBar() {
 		//{ MAKELONG(0,  RaT_ImageListID), IDM_GRAPH, 0, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Graph" },
 		//{ MAKELONG(1,  RaT_ImageListID), IDM_CAMERA, 0, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Camera" },
 		//{ MAKELONG(2,  RaT_ImageListID), IDM_MEASURE, 0, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Measure" },
-		{ MAKELONG(3,  RaT_ImageListID), IDM_SETTINGS, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Settings" },
+		//{ MAKELONG(3,  RaT_ImageListID), IDM_SETTINGS, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Settings" },
 		{ MAKELONG(4,  RaT_ImageListID), IDM_CONSOLE, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Console" },
 	};
 
@@ -107,7 +107,7 @@ long Frame::createToolBar() {
 	return rect.bottom - rect.top;
 }
 
-void Frame::resize(int w, int h) {
+void FrameView::resize(int w, int h) {
 	dims.w = w;
 	dims.h = h;
 	SendMessage(hWndToolbar, TB_AUTOSIZE, 0, 0);
@@ -115,10 +115,10 @@ void Frame::resize(int w, int h) {
 	GetWindowRect(hWndToolbar, &rect);
 	int tbHeight = rect.bottom - rect.top;
 
-	SetWindowPos(workspace->getHWND(), NULL, 0, tbHeight, w, h - tbHeight, NULL);
+	SetWindowPos(workspaceView->getHWND(), NULL, 0, tbHeight, w, h - tbHeight, NULL);
 }
 
-void Frame::toggleConsole() {
+void FrameView::toggleConsole() {
 	static bool consHide = true;
 	HWND consoleHWND;
 	if (consHide = !consHide) {

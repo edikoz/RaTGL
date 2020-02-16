@@ -4,8 +4,8 @@ uniform mat4 u_viewMat;
 
 
 
-const vec3 c_lens_pos_0 = vec3((10.0)-(70.0), 0.0, 0.0);
-const vec3 c_lens_pos_1 = vec3((20.0)-(-70.0), 0.0, 0.0);
+const vec3 c_lens_pos_0 = vec3((10.000)-(-20.000), 0.000, 0.0);
+const vec3 c_lens_pos_1 = vec3((90.000)-(20.000), 0.000, 0.0);
 
 
 layout(lines) in;
@@ -109,19 +109,19 @@ void main() {
 	r0.origin = gl_in[0].gl_Position.xyz;
 	r0.direction = gl_in[1].gl_Position.xyz;
 
-	r1.origin = r0.direction*intersectSphereF(r0, c_lens_pos_0, (70.0)) + r0.origin;
+	r1.origin = r0.direction*intersectSphereF(r0, c_lens_pos_0, (-20.000)) + r0.origin;
 	vec3 norm0 = normalize(c_lens_pos_0 - r1.origin);
-	norm0.x = -abs(norm0.x);
-	r1.direction = refract(r0.direction, norm0, 0.5);
+	if (dot(r0.direction, norm0) > 0.0) norm0 = -norm0;
+	r1.direction = refract(r0.direction, norm0, 0.500);
 
-	r2.origin = r1.direction*intersectSphereF(r1, c_lens_pos_1, (-70.0)) + r1.origin;
+	r2.origin = r1.direction*intersectSphereF(r1, c_lens_pos_1, (20.000)) + r1.origin;
 	vec3 norm1 = normalize(c_lens_pos_1 - r2.origin);
-	norm1.x = -abs(norm1.x);
-	r2.direction = refract(r1.direction, norm1, 0.8);
+	if (dot(r1.direction, norm1) > 0.0) norm1 = -norm1;
+	r2.direction = refract(r1.direction, norm1, 2.000);
 
-	r3.origin = (30.0 - r2.origin.x)*r2.direction / r2.direction.x + r2.origin;
+	r3.origin = (100.000 - r2.origin.x)*r2.direction / r2.direction.x + r2.origin;
 	r3.direction = r2.direction;
-
+	if (r3.origin.y > 0.000 - 10.000/2.0 && r3.origin.y < 0.000 + 10.000/2.0 && r3.origin.z > 0.000 - 10.000/2.0 && r3.origin.z < 0.000 + 10.000/2.0)
 
 //REPLACE_CHECK
 	{

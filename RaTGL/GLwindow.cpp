@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include "GLwindow.h"
 
+HDC GLwindow::globalHDC = 0;
 HGLRC GLwindow::hglrc = 0;
 int GLwindow::pixelFormat = 0;
 
 GLwindow::GLwindow(HWND parent, const WCHAR *ctitle, WNDPROC proc, Dims dim)
-	: RaTwindow(parent, ctitle, proc, CS_OWNDC, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN, dim)
-{
+	: RaTwindow(parent, ctitle, proc, CS_OWNDC, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN, dim) {
 	PIXELFORMATDESCRIPTOR pfdNULL = {};
 	hdc = GetDC(hwnd);
 	SetPixelFormat(hdc, pixelFormat, &pfdNULL);
@@ -15,11 +15,18 @@ GLwindow::GLwindow(HWND parent, const WCHAR *ctitle, WNDPROC proc, Dims dim)
 void GLwindow::INIT() {
 	FakeWindow *fake = new FakeWindow();	//Loading OpenGL3.0+ functions
 	DummyWindow *dummy = new DummyWindow();	//Creating OpenGL context for the thread
-	HDC hdc = GetDC(dummy->getHWND());
-	wglMakeCurrent(hdc, hglrc);
+	globalHDC = GetDC(dummy->getHWND());
+	activateGlobalContext();
 	Shader::INIT();
-	wglMakeCurrent(0, 0);
-	delete fake, dummy;						//Now get out of here ugly monsters
+	deactivateGlobalContext();
+	delete fake;							//Now get out of here ugly monsters (dummy must live for global context available)
+}
+
+void GLwindow::activateGlobalContext() {
+	RETURNonERROR(wglMakeCurrent(globalHDC, hglrc), "Global context enable error");
+}
+void GLwindow::deactivateGlobalContext() {
+	RETURNonERROR(wglMakeCurrent(globalHDC, 0), "Global context disable error");
 }
 
 void GLwindow::activateContext() {

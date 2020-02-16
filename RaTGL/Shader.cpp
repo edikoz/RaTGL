@@ -145,7 +145,7 @@ GLuint Shader::subLoad(string fname, GLenum type) {
 	return shaderHandle;
 }
 
-void Shader::createBuffer(GLenum usage, GLuint *vaoId, GLuint *bufferId, float* buffer, GLsizeiptr bufferSize, int *attributeSizes, GLuint attribSize, int feedbackOffset) {
+void Shader::createBuffer(GLenum usage, GLuint *vaoId, GLuint *bufferId, const float* buffer, GLsizeiptr bufferSize, const int *attributeSizes, GLuint attribSize, int feedbackOffset) {
 	glGenVertexArrays(1, vaoId);
 	RETURNonERROR(vaoId, "GenVertexArrays ERROR\n");
 

@@ -2,7 +2,13 @@
 #include "resource.h"
 #include "RaTwindow.h"
 
-HINSTANCE RaTwindow::hInst;
+HINSTANCE RaTwindow::hInst = 0;
+void RaTwindow::INIT(HINSTANCE hInst) {
+	RaTwindow::hInst = hInst;
+}
+HINSTANCE RaTwindow::getInstance() {
+	return hInst;
+}
 
 RaTwindow::RaTwindow(const WCHAR *ctitle, WNDPROC cproc, UINT classStyle, DWORD wndStyle, Dims rect, int icon)
 	: RaTwindow(nullptr, ctitle, cproc, classStyle, wndStyle, rect, icon) {}

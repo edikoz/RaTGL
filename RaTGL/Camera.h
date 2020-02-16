@@ -1,14 +1,13 @@
 #pragma once
-#include "GLwindow.h"
 
-class Camera final : public GLwindow {
-	static LRESULT CALLBACK proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-	float mMainViewMat[16] = { 0 }, mPerspectiveProjMat[16] = { 0 }, mOrthogonalProjMat[16] = { 0 };
-	float mSensorViewMat[16] = { 0 }, mSensorProjMat[16] = { 0 };
-	float *mViewMat = mMainViewMat, *mProjMat = mPerspectiveProjMat;
+class Camera {
+	Matrix4 mMVPMat = {}, mVPMat = {};
+	Matrix4 mMainViewMat = {}, mPerspectiveProjMat = {}, mOrthogonalProjMat = {};
+	Matrix4 mSensorViewMat = {}, mSensorProjMat = {};
+	Matrix4 *mViewMat, *mProjMat;
 
 	float FOV = 30.0f * M_PI / 180.0f, ZOOM = 5.0f, ratio = 2.0f;
+	bool ortho = false;
 
 	float ax = 0, ay = -M_PI;
 	float camPx = 0, camPy = 0, camPz = 0;
@@ -17,18 +16,11 @@ class Camera final : public GLwindow {
 
 	void preCalc();
 
-	GLfloat modelMat[16];
-	GLuint vaoId, bufferId;
-
 public:
-	static Camera* camera;
-
-	float mMVPMat[16] = { 0 }, mVPMat[16] = { 0 };
-	bool ortho = false;
-
-	Camera(HWND parent, Dims dim);
-
 	enum Direction { forward, back, left, right };
+
+	Camera();
+
 	void moveDirection(float dmove, Direction direction);
 	void move(float dx, float dy, float dz);
 	void moveTo(float dx, float dy, float dz);
@@ -39,14 +31,10 @@ public:
 	void changeProjection();
 	void changeRatio(float ratio);
 	void setCameraToMain();
-	void setCameraToSensor(int x, int y, int w, int h);
+	//void setCameraToSensor(float x, float y, float z, float w, float h);
 	Vector3 getView();
 	Vector3 getPos();
-	float getDistance(float x, float y, float z);
 	float getFOV();
 	float getRatio();
-
-	void calcMat();
-	void draw() override;
-	~Camera();
+	const float* calcMVP(const Matrix4 &model);
 };

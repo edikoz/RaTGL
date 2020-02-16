@@ -1,8 +1,21 @@
 #include "stdafx.h"
 #include "ShaderText.h"
 
+int ShaderText::ray_count, ShaderText::norm_count,
+ShaderText::consts_count, ShaderText::uniforms_count,
+ShaderText::vertices_count;
+
+std::string ShaderText::uniforms,
+ShaderText::consts, ShaderText::emits, ShaderText::rays,
+ShaderText::ray_traces;
+
+void ShaderText::empty() {
+	uniforms = ""; consts = ""; emits = ""; rays = ""; ray_traces = "";
+	ray_count = norm_count = consts_count = uniforms_count = vertices_count = 0;
+}
+
 //Основа шейдера
-std::string shdrMain = 
+std::string ShaderText::shdrMain =
 R"RaT(#version 330 core
 
 uniform mat4 u_viewMat;
@@ -48,7 +61,7 @@ REPLACE_EMIT
 //ASPHERIC BLOCK BEGIN
 
 //Уравнение асферической поверхности
-const std::string shdrFunctions = R"RaT(
+const std::string ShaderText::shdrFunctions = R"RaT(
 float polyAspher(float y0, const float p[8]){
     return
 	(y0*y0/p[0]) / 
@@ -142,70 +155,70 @@ float intersectSphereF(Ray ray, vec3 sph, const float r) {
 
 //GENERATION BLOCK BEGIN
 
-std::string shdrEmitter = R"RaT(
+std::string ShaderText::shdrEmitter = R"RaT(
 	RAY.origin = gl_in[0].gl_Position.xyz;
 	RAY.direction = gl_in[1].gl_Position.xyz;
 )RaT";
 
-std::string shdrRayTransform = R"RaT(
+std::string ShaderText::shdrRayTransform = R"RaT(
 	RAY.origin = ( MAT_TRANSFORM_ORIGIN * vec4(RAY_P.origin, 1.0) ).xyz;
 	RAY.direction = ( MAT_TRANSFORM_DIRECTION * vec4(RAY_P.direction, 1.0) ).xyz;
 )RaT";
 
-std::string shdrPlane = R"RaT(
+std::string ShaderText::shdrPlane = R"RaT(
 	RAY.origin = (PLANE_POS_X - RAY_P.origin.x)*RAY_P.direction / RAY_P.direction.x + RAY_P.origin;
 	RAY.direction = RAY_P.direction;
 )RaT";
 
-std::string shdrPlaneLens = R"RaT(
+std::string ShaderText::shdrPlaneLens = R"RaT(
 	RAY.origin = (PLANE_POS_X - RAY_P.origin.x)*RAY_P.direction / RAY_P.direction.x + RAY_P.origin;
 	RAY.direction = refract( RAY_P.direction, vec3(-1.0, 0.0, 0.0), REFRACTION_INDEX );
 )RaT";
 
-std::string shdrSphereLens = R"RaT(
+std::string ShaderText::shdrSphereLens = R"RaT(
 	RAY.origin = RAY_P.direction*intersectSphereF(RAY_P, LENS_POS, LENS_RADIUS) + RAY_P.origin;
 	vec3 NORM = normalize(LENS_POS - RAY.origin);
-	NORM.x = -abs(NORM.x);
+	if (dot(RAY_P.direction, NORM) > 0.0) NORM = -NORM;
 	RAY.direction = refract(RAY_P.direction, NORM, REFRACTION_INDEX);
 )RaT";
 
-std::string shdrAsphericLens = R"RaT(
+std::string ShaderText::shdrAsphericLens = R"RaT(
 	RAY.origin = aspherSolver( vec4(LENS_POS.x + LENS_WIDTH, 0, 0, LENS_POS.x),
 		RAY_P, vec3(LENS_POS.x + LENS_WIDTH, LENS_POS.y, LENS_POS.z), LENS_COEF);
 	vec3 NORM = normalize( vec3(-1.0, dPolyAspher( RAY.origin.y - LENS_POS.y, LENS_COEF), 0.0) );
 	RAY.direction = refract( RAY_P.direction, NORM, REFRACTION_INDEX );
 )RaT";
 
-std::string shdrBTSBack = R"RaT(
+std::string ShaderText::shdrBTSBack = R"RaT(
 	RAY.origin = BTSsolverBack( vec4(0.0), RAY_P, vec3(BTS_RADIUS, 0.0, 0.0));
 	float NORM_F = dBTSequation( RAY.origin, BTS_RADIUS, BTS_PERIOD );
 	vec3 NORM = normalize( vec3(-1.0, NORM_F, -NORM_F) );
 	RAY.direction = refract( RAY_P.direction, NORM, REFRACTION_INDEX );
 )RaT";
 
-std::string shdrBTSFront = R"RaT(
+std::string ShaderText::shdrBTSFront = R"RaT(
 	RAY.origin = BTSsolverFront( vec4(0.0), RAY_P, vec3(BTS_WIDTH - BTS_RADIUS, 0.0, 0.0));
 	float NORM_F = dBTSequation( RAY.origin, BTS_RADIUS, BTS_PERIOD );
 	vec3 NORM = normalize(vec3(-1.0, -NORM_F, NORM_F));
 	RAY.direction = refract( RAY_P.direction, NORM, REFRACTION_INDEX );
 )RaT";
 
-std::string shdrPlaneMirror = R"RaT(
+std::string ShaderText::shdrPlaneMirror = R"RaT(
 	RAY.origin = RAY_P.origin + RAY_P.direction * dot(NORM, -RAY_P.origin) / dot(NORM, RAY_P.direction);
 	RAY.direction = reflect(RAY_P.direction, NORM);
 )RaT";
 
-std::string shdrSphereMirror = R"RaT(
+std::string ShaderText::shdrSphereMirror = R"RaT(
 	RAY.origin = RAY_P.direction*intersectSphereF(RAY_P, MIRROR_POS, MIRROR_RADIUS) + RAY_P.origin;
 	vec3 NORM = normalize(MIRROR_POS - RAY.origin);
 	RAY.direction = reflect(RAY_P.direction, NORM);
 )RaT";
 
 
-std::string shdrCheck = R"RaT(if ( all(not( isnan(RAY.origin) )) && all(not( isinf(RAY.origin) )) ))
+std::string ShaderText::shdrCheck = R"RaT(if ( all(not( isnan(RAY.origin) )) && all(not( isinf(RAY.origin) )) ))
 )RaT";
 
-std::string shdrOut = R"RaT(
+std::string ShaderText::shdrOut = R"RaT(
 		emit(COLOR_OUT, RAY_OUT);)RaT";
 
 //GENERATION BLOCK END

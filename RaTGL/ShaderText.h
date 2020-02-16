@@ -1,24 +1,37 @@
 #pragma once
 
-//Основа шейдера
-extern std::string shdrMain;
+class ShaderText {
+public:
+	static void empty();
 
-//Функции трассировки шейдера
-extern const std::string shdrFunctions;
+	static int ray_count, norm_count,
+		consts_count, uniforms_count,
+		vertices_count;
 
-//GENERATION BLOCK BEGIN
+	static std::string uniforms,
+		consts, emits, rays,
+		ray_traces;
 
-extern std::string shdrEmitter;
-extern std::string shdrRayTransform;
-extern std::string shdrPlane;
-extern std::string shdrPlaneLens;
-extern std::string shdrAsphericLens;
-/*extern std::string shdrBTSBack;
-extern std::string shdrBTSFront;*/
-extern std::string shdrPlaneMirror;
-extern std::string shdrSphereMirror;
-extern std::string shdrSphereLens;
-extern std::string shdrCheck;
-extern std::string shdrOut;
+	//Основа шейдера
+	static std::string shdrMain;
 
-//GENERATION BLOCK END
+	//Функции трассировки шейдера
+	static const std::string shdrFunctions;
+
+	//GENERATION BLOCK BEGIN
+
+	static std::string shdrEmitter;
+	static std::string shdrRayTransform;
+	static std::string shdrPlane;
+	static std::string shdrPlaneLens;
+	static std::string shdrAsphericLens;
+	static std::string shdrBTSBack;
+	static std::string shdrBTSFront;
+	static std::string shdrPlaneMirror;
+	static std::string shdrSphereMirror;
+	static std::string shdrSphereLens;
+	static std::string shdrCheck;
+	static std::string shdrOut;
+
+	//GENERATION BLOCK END
+};

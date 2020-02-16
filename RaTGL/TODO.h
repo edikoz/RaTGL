@@ -10,3 +10,7 @@
 //ret = replaceString(ret, "RAY", "r" + std::to_string(ray - 1));
 //or
 //ret = replaceString(ret, "RAY", "r" + std::to_string(ray++));
+
+//Move GLwindow ctor to protected
+
+//Add virtual mat calc to elements

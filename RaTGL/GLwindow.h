@@ -3,6 +3,10 @@
 
 class GLwindow : public RaTwindow {
 private:
+	static HDC globalHDC;
+	static HGLRC hglrc;
+	static int pixelFormat;
+
 	class FakeWindow : public RaTwindow {
 		static LRESULT CALLBACK proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -18,16 +22,16 @@ private:
 	};
 
 protected:
-	static HGLRC hglrc;
-	static int pixelFormat;
 	HDC hdc;
 
+	void activateContext();
+	void deactivateContext();
 public:
 	GLwindow(HWND parent, const WCHAR *ctitle, WNDPROC proc, Dims dim);
 
 	static void INIT();
+	static void activateGlobalContext();
+	static void deactivateGlobalContext();
 
-	void activateContext();
 	virtual void draw();
-	void deactivateContext();
 };

@@ -2,6 +2,8 @@
 
 class RaTwindow {
 protected:
+	static HINSTANCE hInst;
+
 	struct Dims {
 		int x, y, w, h;
 	}dims;
@@ -17,7 +19,8 @@ private:
 	bool error;
 
 public:
-	static HINSTANCE hInst;
+	static void INIT(HINSTANCE hInst);
+	static HINSTANCE getInstance();
 
 	HWND getHWND();
 	bool isError();

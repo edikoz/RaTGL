@@ -3,7 +3,7 @@
 class Shader {
 public:
 	static void INIT();
-	static void createBuffer(GLenum usage, GLuint *vaoId, GLuint *bufferId, float* buffer, GLsizeiptr bufferSize, int *attributeSizes, GLuint attribSize, int offset = 0);
+	static void createBuffer(GLenum usage, GLuint *vaoId, GLuint *bufferId, const float* buffer, GLsizeiptr bufferSize, const int *attributeSizes, GLuint attribSize, int offset = 0);
 	static void InitRays(std::string* u, size_t count);
 	static void Destroy();
 
