@@ -3,25 +3,26 @@
 #include "PropertiesView.h"
 #include "ShaderText.h"
 
-LensElement::LensElement() : LensElement(PLANE, 0, 0, 10.0f, 10.0f, 10.0f, 1.5f, 5.0f, { 0.0f }) { }
-LensElement::LensElement(LENS_TYPE clt, float cx, float cy, float ch, float cw, float cd, float cn, float cr, std::vector<float> ccoef)
+LensElement::LensElement() : LensElement(PLANE, 0, 0, 0, 10.0f, 10.0f, 10.0f, 1.5f, 5.0f, { 0.0f }) { }
+LensElement::LensElement(LENS_TYPE clt, float cx, float cy, float cz, float ch, float cw, float cd, float cn, float cr, std::vector<float> ccoef)
 	: RaTElement(L"Преломляющая пов-сть " + std::to_wstring(++count), LENS) {
-	x = insertNumDoubleProp(L"Положение X", cx);
-	y = insertNumDoubleProp(L"Положение Y", cy);
-	w = insertNumDoubleProp(L"Ширина", cw);
-	h = insertNumDoubleProp(L"Высота", ch);
-	n = insertNumDoubleProp(L"n", cn);
-	std::wstring types[] = { L"Плоская", L"Асферическая Z", L"Сферическая" };
+	xH = insertNumDoubleProp(L"Положение X", x = cx);
+	yH = insertNumDoubleProp(L"Положение Y", y = cy);
+	zH = insertNumDoubleProp(L"Положение Z", z = cz);
+	wH = insertNumDoubleProp(L"Ширина", w = cw);
+	hH = insertNumDoubleProp(L"Высота", h = ch);
+	nH = insertNumDoubleProp(L"n", n = cn);
+	std::wstring types[] = { L"Плоская"/*, L"Асферическая Z"*/, L"Сферическая" };
 	lensType = insertComboBoxProp(L"Тип", types, sizeofArray(types), (HMENU)IDC_LENSTYPE, clt);
-	r = insertNumDoubleProp(L"Радиус кривизны", cr);
-	d = insertNumDoubleProp(L"Толщина", cd);
+	rH = insertNumDoubleProp(L"Радиус кривизны", r = cr);
+	dH = insertNumDoubleProp(L"Толщина", d = cd);
 	coef = ccoef;
 	coef.resize(8, 0.0f);
 	setFloatText(coefA.num, coef[0]);
 	coefA = insertNumDoubleArrayProp(L"Коэффициенты", 0.0, coef.size());
 
-	hideProp(r);
-	hideProp(d);
+	hideProp(rH);
+	hideProp(dH);
 	hidePropArray(coefA);
 	changeLensTypeProps();
 
@@ -29,11 +30,22 @@ LensElement::LensElement(LENS_TYPE clt, float cx, float cy, float ch, float cw, 
 }
 
 std::string LensElement::getShader() {
-	std::string xPosBuffer = getWndText(x);
-	std::string yPosBuffer = getWndText(y);
-	std::string refrIndexBuffer = getWndText(n);
-	std::string radiusBuffer = getWndText(r);
-	std::string widthBuffer = getWndText(d);
+	x = getFloatText(xH) + ShaderText::prevX;
+	ShaderText::prevX = x;
+	y = getFloatText(yH);
+	z = getFloatText(zH);
+	w = getFloatText(wH);
+	h = getFloatText(hH);
+	d = getFloatText(dH);
+	n = getFloatText(nH);
+	r = getFloatText(rH);
+
+	std::string xPosBuffer = std::to_string(x);
+	std::string yPosBuffer = std::to_string(y);
+	std::string zPosBuffer = std::to_string(z);
+	std::string refrIndexBuffer = std::to_string(n);
+	std::string radiusBuffer = std::to_string(r);
+	std::string widthBuffer = std::to_string(d);
 
 	std::string ret1 = "", emit = "";
 	std::string rayp1 = "r" + std::to_string(ShaderText::ray_count - 1);
@@ -45,11 +57,11 @@ std::string LensElement::getShader() {
 		ret1 = replaceString(ret1, "RAY", ray);
 		ret1 = replaceString(ret1, "REFRACTION_INDEX", refrIndexBuffer);
 		ret1 = replaceString(ret1, "PLANE_POS_X", xPosBuffer);
-		break;
+		break;/*
 	case CYL_Z_ASPHER:
 	{
 		std::string lens_pos = "c_lens_pos_" + std::to_string(ShaderText::consts_count++);
-		ShaderText::consts += "const vec3 " + lens_pos + " = vec3(" + xPosBuffer + ", " + yPosBuffer + ", 0.0);\n";
+		ShaderText::consts += "const vec3 " + lens_pos + " = vec3(" + xPosBuffer + ", " + yPosBuffer + ", " + zPosBuffer +");\n";
 
 		ret1 = replaceString(ShaderText::shdrAsphericLens, "RAY_P", rayp1);
 		ret1 = replaceString(ret1, "LENS_WIDTH", widthBuffer);
@@ -67,11 +79,11 @@ std::string LensElement::getShader() {
 		ret1 = replaceString(ret1, "LENS_COEF", coef);
 		ret1 = replaceString(ret1, "LENS_POS", lens_pos);
 	}
-	break;
+	break;*/
 	case SPHERE:
 	{
 		std::string lens_pos = "c_lens_pos_" + std::to_string(ShaderText::consts_count++);
-		ShaderText::consts += "const vec3 " + lens_pos + " = vec3((" + xPosBuffer + ")-(" + radiusBuffer + "), " + yPosBuffer + ", 0.0);\n";
+		ShaderText::consts += "const vec3 " + lens_pos + " = vec3((" + xPosBuffer + ")-(" + radiusBuffer + "), " + yPosBuffer + ", " + zPosBuffer + ");\n";
 
 		ret1 = replaceString(ShaderText::shdrSphereLens, "RAY_P", rayp1);
 		ret1 = replaceString(ret1, "LENS_RADIUS", std::string("(") + radiusBuffer + ")");
@@ -118,13 +130,8 @@ float LensElement::dPolyAspher(float y0, const float *p, size_t size) {
 void LensElement::obtainGLresources() {
 	LENS_TYPE type = getType();
 
-	float x = getFloatText(LensElement::x);
-	float y = getFloatText(LensElement::y);
-	float d = getFloatText(LensElement::d);
-	float w = getFloatText(LensElement::w);
-	float h = getFloatText(LensElement::h);
-	float r = getFloatText(LensElement::r);
 	float w2 = w / 2, h2 = h / 2;
+
 	switch (type) {
 	case PLANE:
 	{
@@ -141,10 +148,10 @@ void LensElement::obtainGLresources() {
 		Shader::createBuffer(GL_STATIC_DRAW, &vaoId, &bufferId, cA, sizeof(cA), attribFormat, sizeofArray(attribFormat));
 
 		modelMat.setIdentity();
-		modelMat.translate(x, y, 0);
+		modelMat.translate(x, y, z);
 		modelMat.scale(1.0f, h, w);
 	}
-	break;
+	break;/*
 	case CYL_Z_ASPHER:
 	{
 		const int points = 500;
@@ -171,16 +178,16 @@ void LensElement::obtainGLresources() {
 		delete[] surf;
 
 		modelMat.setIdentity();
-		modelMat.translate(x + d, y, 0);
+		modelMat.translate(x + d, y, z);
 	}
-	break;
+	break;*/
 	case SPHERE:
 	{
 		const int hdiv = 40, rdiv = 60;
 		const int surfSize = hdiv * rdiv * 3 * 2 * 2;
 		float *surf = new float[surfSize];
 		float rSign = -((r > 0) ? 1 : ((r < 0) ? -1 : 0));
-		r = abs(r);
+		float r = abs(LensElement::r);
 		for (int i = 0; i < hdiv; ++i) {
 			float xi = rSign * (r - (float)(hdiv - i) / hdiv * (r - sqrt(r*r - d * d / 4)));
 			float xi1 = rSign * (r - (float)(hdiv - i - 1) / hdiv * (r - sqrt(r*r - d * d / 4)));
@@ -214,7 +221,7 @@ void LensElement::obtainGLresources() {
 		delete[] surf;
 
 		modelMat.setIdentity();
-		modelMat.translate(x + rSign * r, y, 0);
+		modelMat.translate(x + rSign * r, y, z);
 	}
 	break;
 	}
@@ -240,9 +247,7 @@ void LensElement::draw(Camera *camera) {
 }
 
 void LensElement::calcDistanceTo(Vector3 pos) {
-	float x = getFloatText(LensElement::x);
-	float y = getFloatText(LensElement::y);
-	distance = pos.distanceTo({ x,y,0 });
+	distance = pos.distanceTo({ x,y, z });
 }
 
 LensElement::LENS_TYPE LensElement::getType() {
@@ -252,19 +257,19 @@ LensElement::LENS_TYPE LensElement::getType() {
 void LensElement::changeLensTypeProps() {
 	switch (getType()) {
 	case PLANE:
-		hideProp(r);
-		hideProp(d);
+		hideProp(rH);
+		hideProp(dH);
 		hidePropArray(coefA);
 		break;
-	case CYL_Z_ASPHER:
-		hideProp(r);
-		showProp(d);
+	/*case CYL_Z_ASPHER:
+		hideProp(rH);
+		showProp(dH);
 		showPropArray(coefA);
-		break;
+		break;*/
 	case SPHERE:
 		hidePropArray(coefA);
-		showProp(r);
-		showProp(d);
+		showProp(rH);
+		showProp(dH);
 		break;
 	}
 }
@@ -315,5 +320,5 @@ void LensElement::load(std::string elementString) const {
 }
 
 LensElement::~LensElement() {
-	//--count;
+	--count;
 }

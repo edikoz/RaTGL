@@ -6,13 +6,13 @@
 CameraElement::CameraElement() : CameraElement(0.0f, 0.0f, 0.0f, 10.0f, 10.0f, 128, 128) {};
 CameraElement::CameraElement(float cx, float cy, float cz, float csx, float csy, int crx, int cry)
 	: RaTElement(L"Изображение " + std::to_wstring(++count), CAMERA) {
-	x = insertNumDoubleProp(L"Положение X", cx);
-	y = insertNumDoubleProp(L"Положение Y", cy);
-	z = insertNumDoubleProp(L"Положение Z", cz);
-	sizeX = insertNumDoubleProp(L"Размер Z", csx);
-	sizeY = insertNumDoubleProp(L"Размер Y", csy);
-	resX = insertNumIntProp(L"Разрешение Z", crx);
-	resY = insertNumIntProp(L"Разрешение Y", cry);
+	xH = insertNumDoubleProp(L"Положение X", x = cx);
+	yH = insertNumDoubleProp(L"Положение Y", y = cy);
+	zH = insertNumDoubleProp(L"Положение Z", z = cz);
+	wH = insertNumDoubleProp(L"Размер Z", w = csx);
+	hH = insertNumDoubleProp(L"Размер Y", h = csy);
+	pixWH = insertNumIntProp(L"Разрешение Z", pixW = crx);
+	pixHH = insertNumIntProp(L"Разрешение Y", pixH = cry);
 
 	if (!imageBuf) imageBuf = new float[MAX_IMAGE_BUF];
 	EXITonERROR(imageBuf, "Memory error!");
@@ -21,11 +21,20 @@ CameraElement::CameraElement(float cx, float cy, float cz, float csx, float csy,
 }
 
 std::string CameraElement::getShader() {
-	std::string xPosBuffer = getWndText(x);
-	std::string yPosBuffer = getWndText(y);
-	std::string zPosBuffer = getWndText(z);
-	std::string wBuffer = getWndText(sizeX);
-	std::string hBuffer = getWndText(sizeY);
+	x = getFloatText(xH) + ShaderText::prevX;
+	ShaderText::prevX = x;
+	y = getFloatText(yH);
+	z = getFloatText(zH);
+	w = getFloatText(wH);
+	h = getFloatText(hH);
+	pixW = getIntText(pixWH);
+	pixH = getIntText(pixHH);
+
+	std::string xPosBuffer = std::to_string(x);
+	std::string yPosBuffer = std::to_string(y);
+	std::string zPosBuffer = std::to_string(z);
+	std::string wBuffer = std::to_string(w);
+	std::string hBuffer = std::to_string(h);
 
 	std::string ret = "", emit = "";
 	std::string rayp = "r" + std::to_string(ShaderText::ray_count - 1);
@@ -55,14 +64,6 @@ std::string CameraElement::getShader() {
 }
 
 void CameraElement::obtainGLresources() {
-	camX = getFloatText(CameraElement::x);
-	camY = getFloatText(CameraElement::y);
-	camZ = getFloatText(CameraElement::z);
-	camW = getFloatText(CameraElement::sizeX);
-	camH = getFloatText(CameraElement::sizeY);
-	camPixX = getIntText(CameraElement::resX);
-	camPixY = getIntText(CameraElement::resY);
-
 	float cA[] = {
 		0,-0.5f,0.5f, 0.0f, 0.0f,
 		0,-0.5f,-0.5f, 1.0f, 0.0f,
@@ -80,8 +81,8 @@ void CameraElement::obtainGLresources() {
 	changeSensorResolution();
 
 	modelMat.setIdentity();
-	modelMat.translate(camX, camY, camZ);
-	modelMat.scale(1.0f, camH, camW);
+	modelMat.translate(x, y, z);
+	modelMat.scale(1.0f, h, w);
 }
 void CameraElement::releaseGLresources() {
 	glDeleteVertexArrays(1, &vaoId);
@@ -92,7 +93,7 @@ void CameraElement::releaseGLresources() {
 
 
 void CameraElement::calcRays(int points) {
-	glViewport(0, 0, camPixX, camPixY);
+	glViewport(0, 0, pixW, pixH);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 	glUseProgram(Shader::Point::programHandle);
 
@@ -102,12 +103,6 @@ void CameraElement::calcRays(int points) {
 
 	glBindVertexArray(feedbackVaoId);
 	glEnableVertexAttribArray(Shader::Point::Input::Position);
-
-	float x = getFloatText(CameraElement::x);
-	float y = getFloatText(CameraElement::y);
-	float z = getFloatText(CameraElement::z);
-	float w = getFloatText(CameraElement::sizeX);
-	float h = getFloatText(CameraElement::sizeY);
 
 	Matrix4 identity;
 	identity.setIdentity();
@@ -146,9 +141,6 @@ void CameraElement::draw(Camera *camera) {
 }
 
 void CameraElement::calcDistanceTo(Vector3 pos) {
-	float x = getFloatText(CameraElement::x);
-	float y = getFloatText(CameraElement::y);
-	float z = getFloatText(CameraElement::z);
 	distance = pos.distanceTo({ x,y,z });
 }
 
@@ -166,7 +158,7 @@ CameraElement::~CameraElement() {
 
 	glDeleteTextures(1, &textureId);
 	glDeleteFramebuffers(1, &fboId);
-	//--count;
+	--count;
 }
 
 /*void SceneView::changeTextureFormat(int tFormat) {
@@ -179,11 +171,11 @@ CameraElement::~CameraElement() {
 void CameraElement::changeSensorResolution() {
 	//if (cPx) {
 		//camPixX = cPx;
-		if (camPixX*camPixY > MAX_IMAGE_BUF) camPixX = MAX_IMAGE_BUF / camPixY;
+	if (pixW*pixH > MAX_IMAGE_BUF) pixW = MAX_IMAGE_BUF / pixH;
 	//}
 	//if (cPy) {
 		//camPixY = cPy;
-		if (camPixX*camPixY > MAX_IMAGE_BUF) camPixY = MAX_IMAGE_BUF / camPixX;
+	if (pixW*pixH > MAX_IMAGE_BUF) pixH = MAX_IMAGE_BUF / pixW;
 	//}
 
 	glDeleteTextures(1, &textureId);
@@ -194,10 +186,10 @@ void CameraElement::changeSensorResolution() {
 	glBindTexture(GL_TEXTURE_2D, textureId);
 
 	switch (textureBit) {
-	case 0: glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, camPixX, camPixY, 0, GL_RGBA, GL_FLOAT, 0); break; //FIXME check GL_RED instead  GL_RGBA
-	case 1: glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, camPixX, camPixY, 0, GL_RED, GL_FLOAT, 0); break;
-	case 2: glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, camPixX, camPixY, 0, GL_RED, GL_FLOAT, 0); break;
-	case 3: glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, camPixX, camPixY, 0, GL_RED, GL_FLOAT, 0); break;
+	case 0: glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pixW, pixH, 0, GL_RGBA, GL_FLOAT, 0); break; //FIXME check GL_RED instead  GL_RGBA
+	case 1: glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, pixW, pixH, 0, GL_RED, GL_FLOAT, 0); break;
+	case 2: glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, pixW, pixH, 0, GL_RED, GL_FLOAT, 0); break;
+	case 3: glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, pixW, pixH, 0, GL_RED, GL_FLOAT, 0); break;
 	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -209,4 +201,89 @@ void CameraElement::changeSensorResolution() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) std::cout << "Framebuffer error\n";
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void CameraElement::getProps(CameraProps &sp) {
+	glActiveTexture(GL_TEXTURE0);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, imageBuf);
+
+	double mnI = 0;
+	for (int i = 0; i < pixW*pixH; ++i)
+		mnI += imageBuf[i];
+	{
+
+		double mi = 0, mj = 0;
+		for (int i1 = 0; i1 < pixW; ++i1)
+			for (int j1 = 0; j1 < pixH; ++j1) {
+				mi = mi + i1 * imageBuf[i1 + pixW * j1];
+				mj = mj + j1 * imageBuf[i1 + pixW * j1];
+			}
+		mi = mi / mnI;
+		mj = mj / mnI;
+
+		double wx = 0;
+		double wy = 0;
+		for (int i2 = 0; i2 < pixW; ++i2)
+			for (int j2 = 0; j2 < pixH; ++j2) {
+				wx = wx + (i2 - mi)*(i2 - mi)*imageBuf[i2 + pixW * j2];
+				wy = wy + (j2 - mj)*(j2 - mj)*imageBuf[i2 + pixW * j2];
+			}
+		wx = sqrt(wx * 4 / mnI);
+		wy = sqrt(wy * 4 / mnI);
+
+		sp.cx = w * mi / pixW;
+		sp.cy = h * mj / pixH;
+		sp.wx = w * wx / pixW;
+		sp.wy = h * wy / pixH;
+	}
+	{
+
+		double maxIntensity = -INFINITY;
+		int mi = 0, mj = 0;
+		for (int i1 = 0; i1 < pixW; ++i1)
+			for (int j1 = 0; j1 < pixH; ++j1) {
+				if (imageBuf[i1 + pixW * j1] > maxIntensity) {
+					maxIntensity = imageBuf[i1 + pixW * j1];
+					mi = i1;
+					mj = j1;
+				}
+			}
+
+		double wx = 0, wy = 0;
+		{
+			int leftWx = 0, rightWx = pixW;
+			for (int i1 = 0; i1 < pixW; ++i1)
+				if (imageBuf[i1 + pixW * mj] > maxIntensity / 2) {
+					leftWx = i1;
+					break;
+				}
+			for (int i1 = pixW - 1; i1 > 0; --i1)
+				if (imageBuf[i1 + pixW * mj] > maxIntensity / 2) {
+					rightWx = i1;
+					break;
+				}
+			wx = abs(leftWx - rightWx);
+		}
+		{
+			int leftWy = 0 , rightWy = pixH;
+			for (int j1 = 0; j1 < pixH; ++j1)
+				if (imageBuf[mi + pixW * j1] > maxIntensity / 2) {
+					leftWy = j1;
+					break;
+				}
+			for (int j1 = pixH - 1; j1 > 0; --j1)
+				if (imageBuf[mi + pixW * j1] > maxIntensity / 2) {
+					rightWy = j1;
+					break;
+				}
+			wy = abs(leftWy - rightWy);
+		}
+
+		sp.mx = w * mi / pixW;
+		sp.my = h * mj / pixH;
+		sp.fx = w * wx / pixW;
+		sp.fy = h * wy / pixH;
+		sp.maxI = maxIntensity;
+	}
+	sp.sumI = mnI;
 }

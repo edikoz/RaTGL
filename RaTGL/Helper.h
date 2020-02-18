@@ -10,7 +10,7 @@
 #define MWS_DBL WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT 
 #define MWS_INT WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | ES_NUMBER
 #define MWS_CHK WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX
-#define MWS_LBL WS_VISIBLE | WS_CHILD
+#define MWS_LBL WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE
 
 template <typename T>
 constexpr auto sizeofArray(const T& rArray) {
@@ -26,7 +26,7 @@ void setIntText(HWND hWnd, int i);
 void setFloatText(HWND hWnd, float f);
 int getIntText(HWND hWnd);
 float getFloatText(HWND hWnd);
-std::string getWndText(HWND hWnd);
+//std::string getWndText(HWND hWnd);
 
 void GetLocalRect(HWND hWnd, LPRECT rect);
 

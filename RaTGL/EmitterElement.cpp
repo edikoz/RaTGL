@@ -6,11 +6,6 @@
 EmitterElement::EmitterElement() : EmitterElement(15.0, 15.0, 100, 100, 0.5, 0.5, 0) {}
 EmitterElement::EmitterElement(float cdivZ, float cdivY, int craysZ, int craysY, float ch, float cw, int type)
 	: RaTElement(L"Источник света " + std::to_wstring(++count), EMITTER), Fa(L"FA", true) {
-
-
-	ArrayProperty<StringProperty> apd;
-	apd.getValue(1);
-
 	divF = insertNumDoubleProp(L"Расходимость Z", cdivZ);
 	divS = insertNumDoubleProp(L"Расходимость Y", cdivY);
 	rayF = insertNumIntProp(L"Лучей Z", craysZ);
@@ -88,25 +83,13 @@ std::string EmitterElement::save() const {
 void EmitterElement::load(std::string elementString) const {
 
 }
-/*
-void EmitterElement::getEmitterProps(EmitterProps &ep) {
-	ep.cFA = getFloatText(divF);
-	ep.cSA = getFloatText(divS);
-	ep.cfStep = getIntText(rayF);
-	ep.csStep = getIntText(rayS);
-	ep.cMode = SendMessage(gridType, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-	ep.cw = getFloatText(l);
-	ep.ch = getFloatText(h);
-	ep.cNum = 1;//FIXME getIntText(angF);
-	ep.cDist = 0;
-}*/
 
 void EmitterElement::calcDistanceTo(Vector3 pos) {
-	distance = pos.distanceTo({0,0,0});
+	distance = pos.distanceTo({ 0,0,0 });
 }
 
 EmitterElement::~EmitterElement() {
-	//--count;
+	--count;
 }
 
 float* EmitterElement::fillAxis1D(float *axis, int size, float lim) {
@@ -161,7 +144,7 @@ void EmitterElement::changeRays() {
 	Dist = 0;
 
 	float *cA = 0;
-	if (FA <= 0 || SA <= 0 || fStep <= 0 || sStep <= 0 || Num <= 0)
+	if (FA < 0 || SA < 0 || fStep <= 0 || sStep <= 0 || Num <= 0)
 		lines = 0;
 	else {
 		float x0 = -Dist * (Num / 2) - Dist / 2 * (Num % 2 - 1);
@@ -189,19 +172,44 @@ void EmitterElement::changeRays() {
 		case 0: {
 			float fGamma = fLim / sqrt(2.0*log(2.0));
 			float sGamma = sLim / sqrt(2.0*log(2.0));
-			std::default_random_engine generator;
-			std::normal_distribution<float> distributionFast(0.0f, fGamma);
-			std::normal_distribution<float> distributionSlow(0.0f, sGamma);
-			for (int i = 0; i < lines; ++i)
-				fillAxis2D(cA, i, distributionFast(generator), distributionSlow(generator), x0 + Dist * (i%Num));
+			if (fGamma > 0 && sGamma > 0) {
+				std::default_random_engine generator;
+				std::normal_distribution<float> distributionFast(0.0f, fGamma);
+				std::normal_distribution<float> distributionSlow(0.0f, sGamma);
+				for (int i = 0; i < lines; ++i)
+					fillAxis2D(cA, i, distributionFast(generator), distributionSlow(generator), x0 + Dist * (i%Num));
+			}
+			else if (fGamma > 0) {
+				std::default_random_engine generator;
+				std::normal_distribution<float> distributionFast(0.0f, fGamma);
+				for (int i = 0; i < lines; ++i)
+					fillAxis2D(cA, i, distributionFast(generator), 0, x0 + Dist * (i%Num));
+			}
+			else if (sGamma > 0) {
+				std::default_random_engine generator;
+				std::normal_distribution<float> distributionSlow(0.0f, sGamma);
+				for (int i = 0; i < lines; ++i)
+					fillAxis2D(cA, i, 0, distributionSlow(generator), x0 + Dist * (i%Num));
+			}
+			else {
+				for (int i = 0; i < lines; ++i)
+					fillAxis2D(cA, i, 0, 0, x0 + Dist * (i%Num));
+			}
 		}
 				break;
 		case 2: {
 			float *fm = fillAxis1D(new float[fStep], fStep, 2.0f*fLim / fStep);
 			float *sm = fillAxis1D(new float[sStep], sStep, (float)M_PI / sStep);
-			for (int i = 0; i < sStep; ++i)
-				for (int j = 0; j < fStep; ++j)
-					fillAxis2D(cA, i*fStep + j, cos(sm[i])*fm[j], sin(sm[i])*fm[j] * SA / FA, x0 + Dist * ((i*fStep + j) % Num));
+			if (FA > 0 && SA > 0) {
+				for (int i = 0; i < sStep; ++i)
+					for (int j = 0; j < fStep; ++j)
+						fillAxis2D(cA, i*fStep + j, cos(sm[i])*fm[j], sin(sm[i])*fm[j] * SA / FA, x0 + Dist * ((i*fStep + j) % Num));
+			}
+			else {
+				for (int i = 0; i < sStep; ++i)
+					for (int j = 0; j < fStep; ++j)
+						fillAxis2D(cA, i*fStep + j, 0, 0, x0 + Dist * ((i*fStep + j) % Num));
+			}
 			delete[]  fm, sm;
 		}
 				break;

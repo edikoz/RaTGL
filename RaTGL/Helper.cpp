@@ -28,6 +28,7 @@ void setFloatText(HWND hWnd, float f) {
 	UpdateWindow(hWnd);
 };
 
+/*Danger
 std::string getWndText(HWND hWnd) {
 	size_t st;
 	static const size_t bSize = 32;
@@ -36,7 +37,7 @@ std::string getWndText(HWND hWnd) {
 	SendMessage(hWnd, WM_GETTEXT, (WPARAM)(bSize - 1), (LPARAM)TcharBuffer);
 	wcstombs_s(&st, charBuffer, TcharBuffer, bSize);
 	return std::string(charBuffer);
-}
+}*/
 
 void GetLocalRect(HWND hWnd, LPRECT rect){
 	GetWindowRect(hWnd, rect);

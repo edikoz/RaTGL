@@ -4,22 +4,32 @@
 #include "ShaderText.h"
 
 MirrorElement::MirrorElement() : RaTElement(L"Отражающая пов-сть " + std::to_wstring(++count), MIRROR) {
-	x = insertNumDoubleProp(L"Положение X", 0.0);
-	y = insertNumDoubleProp(L"Положение Y", 0.0);
-	angle = insertNumDoubleProp(L"Угол наклона", 0.0);
-	d = insertNumDoubleProp(L"Диаметр", 10.0);
-	spherical = insertButBooleanProp(L"Сферическая", false, (HMENU)IDC_MIRRORTYPE);
-	r = insertNumDoubleProp(L"Радиус кривизны", 0.0);
+	xH = insertNumDoubleProp(L"Положение X", x = 0.0);
+	yH = insertNumDoubleProp(L"Положение Y", y = 0.0);
+	zH = insertNumDoubleProp(L"Положение Y", z = 0.0);
+	angleH = insertNumDoubleProp(L"Угол наклона", angle = 0.0);
+	dH = insertNumDoubleProp(L"Диаметр", d = 10.0);
+	sphericalH = insertButBooleanProp(L"Сферическая", false, (HMENU)IDC_MIRRORTYPE);
+	rH = insertNumDoubleProp(L"Радиус кривизны", r = 0.0);
 
-	hideProp(r);
+	hideProp(rH);
 
 	capsuleInit();
 }
 
 std::string MirrorElement::getShader() {
-	std::string xBuffer = getWndText(x);
-	std::string yBuffer = getWndText(y);
-	std::string radiusBuffer = getWndText(r);
+	x = getFloatText(xH) + ShaderText::prevX;
+	ShaderText::prevX = x;
+	y = getFloatText(yH);
+	z = getFloatText(zH);
+	angle = getFloatText(angleH);
+	d = getFloatText(dH);
+	r = getFloatText(rH);
+
+	std::string xBuffer = std::to_string(x);
+	std::string yBuffer = std::to_string(y);
+	std::string zBuffer = std::to_string(z);
+	std::string radiusBuffer = std::to_string(r);
 
 	std::string ret = "", emit = "";
 	std::string rayp = "r" + std::to_string(ShaderText::ray_count - 1);
@@ -27,7 +37,7 @@ std::string MirrorElement::getShader() {
 
 	if (isSpherical()) {
 		std::string mirror_pos = "c_mirror_pos_" + std::to_string(ShaderText::consts_count++);
-		ShaderText::consts += "const vec3 " + mirror_pos + " = vec3(" + xBuffer + ", " + yBuffer + ", 0.0);\n";
+		ShaderText::consts += "const vec3 " + mirror_pos + " = vec3(" + xBuffer + ", " + yBuffer + ", " + zBuffer + ");\n";
 
 		ret = replaceString(ShaderText::shdrSphereMirror, "RAY_P", rayp);
 		ret = replaceString(ret, "RAY", ray);
@@ -37,7 +47,7 @@ std::string MirrorElement::getShader() {
 	}
 	else {
 		std::string mirror_norm = "c_mirror_norm_" + std::to_string(ShaderText::consts_count++);
-		ShaderText::consts += "const vec3 " + mirror_norm + " = vec3(" + xBuffer + ", " + yBuffer + ", 0.0);\n";
+		ShaderText::consts += "const vec3 " + mirror_norm + " = vec3(" + xBuffer + ", " + yBuffer + ", " + zBuffer + ");\n";
 
 		ret = replaceString(ShaderText::shdrPlaneMirror, "RAY_P", rayp);
 		ret = replaceString(ret, "RAY", ray);
@@ -58,19 +68,12 @@ std::string MirrorElement::getShader() {
 void MirrorElement::obtainGLresources() {
 	const int hdiv = 20, rdiv = 60;
 
-	float x = getFloatText(MirrorElement::x);
-	float y = getFloatText(MirrorElement::y);
-	float angle = getFloatText(MirrorElement::angle);
-	float w = getFloatText(MirrorElement::d);
-	float r = getFloatText(MirrorElement::r);
-	float w2 = w / 2;
-
 	if (isSpherical()) {
 		const int surfSize = hdiv * rdiv * 3 * 2 * 2;
 		float *surf = new float[surfSize];
 		for (int i = 0; i < hdiv; ++i) {
-			float xi = r - (float)(hdiv - i) / hdiv * (r - sqrt(r*r - w * w / 4));
-			float xi1 = r - (float)(hdiv - i - 1) / hdiv * (r - sqrt(r*r - w * w / 4));
+			float xi = r - (float)(hdiv - i) / hdiv * (r - sqrt(r*r - d * d / 4));
+			float xi1 = r - (float)(hdiv - i - 1) / hdiv * (r - sqrt(r*r - d * d / 4));
 			float ki = sqrt(r*r - xi * xi);
 			float ki1 = sqrt(r*r - xi1 * xi1);
 			for (int j = 0; j < rdiv; ++j) {
@@ -101,7 +104,7 @@ void MirrorElement::obtainGLresources() {
 		delete[] surf;
 
 		modelMat.setIdentity();
-		modelMat.translate(x, y, 0);
+		modelMat.translate(x, y, z);
 		modelMat.rotate(angle * (180.0f / M_PI), Axis::Z);
 	}
 	else {
@@ -132,9 +135,9 @@ void MirrorElement::obtainGLresources() {
 		delete[] surf;
 
 		modelMat.setIdentity();
-		modelMat.translate(x, y, 0);
+		modelMat.translate(x, y, z);
 		modelMat.rotate(angle, Axis::Z);
-		modelMat.scale(1, w, w);
+		modelMat.scale(1, d, d);
 	}
 }
 void MirrorElement::releaseGLresources() {
@@ -159,17 +162,15 @@ void MirrorElement::draw(Camera *camera) {
 }
 
 void MirrorElement::calcDistanceTo(Vector3 pos) {
-	float x = getFloatText(MirrorElement::x);
-	float y = getFloatText(MirrorElement::y);
-	distance = pos.distanceTo({ x,y,0 });
+	distance = pos.distanceTo({ x,y,z });
 }
 
 bool MirrorElement::isSpherical() {
-	return Button_GetCheck(spherical);
+	return Button_GetCheck(sphericalH);
 }
 
 void MirrorElement::changeSphericalProps() {
-	isSpherical() ? showProp(r) : hideProp(r);
+	isSpherical() ? showProp(rH) : hideProp(rH);
 }
 
 std::string MirrorElement::save() const {
@@ -181,5 +182,5 @@ void MirrorElement::load(std::string elementString) const {
 }
 
 MirrorElement::~MirrorElement() {
-	//--count;
+	--count;
 }

@@ -176,6 +176,7 @@ LRESULT CALLBACK RaTElement::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
 	return 0;
 }
 
+
 void RaTElement::regClass() {
 	WNDCLASSEX wcex = { 0 };
 	wcex.cbSize = sizeof(WNDCLASSEX);
@@ -365,9 +366,14 @@ void RaTElement::changeRoll() {
 }
 
 void RaTElement::resize(int newY, int newW) {
-	y = newY; w = newW; h = getH();
+	y = newY; w = newW; h = getH(); 
+
 	SetWindowPos(capsule, NULL, 0, y, w, h, SWP_NOZORDER);
 	SetWindowPos(props, NULL, 0, 0, w - 2 * prop_pad, hRoll, SWP_NOMOVE);
+
+	SetWindowPos(eName, NULL, 0, 0, w - (but_size + 2 * prop_pad), prop_height, SWP_NOMOVE);
+	SetWindowPos(cmbType, NULL, 0, 0, w - 2 * prop_pad, prop_height, SWP_NOMOVE);
+
 	SetWindowPos(bRoll, NULL, w - 20, 4, 16, 16, SWP_NOZORDER);
 	SetWindowPos(bAdd, NULL, w - 40, h - 20, 16, 16, SWP_NOZORDER);
 	SetWindowPos(bDel, NULL, w - 20, h - 20, 16, 16, SWP_NOZORDER);

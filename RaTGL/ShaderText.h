@@ -2,6 +2,7 @@
 
 class ShaderText {
 public:
+	static float prevX;
 	static void empty();
 
 	static int ray_count, norm_count,

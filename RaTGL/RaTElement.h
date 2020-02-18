@@ -117,19 +117,18 @@ public:
 	void load(std::string elementString) const override;
 	void calcDistanceTo(Vector3 pos) override;
 	int calcRays(Camera *camera);
-	//void setEmitterProps();
 	~EmitterElement();
 };
 
 class LensElement : public RaTElement {
 public:
-	enum LENS_TYPE : int { PLANE, CYL_Z_ASPHER, SPHERE };
+	enum LENS_TYPE : int { PLANE, /*CYL_Z_ASPHER,*/ SPHERE };
 
 private:
 	static int count;
-	HWND x, y, h, w, d, n;
+	HWND xH, yH, zH, wH, hH, dH, nH, rH;
+	float x, y, z, w, h, d, n, r;
 	HWND lensType;
-	HWND r;
 	HWNDArray coefA;
 	std::vector<float> coef;
 
@@ -139,7 +138,7 @@ private:
 
 public:
 	LensElement();
-	LensElement(LENS_TYPE lt, float x, float y, float h, float w, float d, float n, float r, std::vector<float> coef);
+	LensElement(LENS_TYPE lt, float x, float y, float z, float h, float w, float d, float n, float r, std::vector<float> coef);
 	std::string getShader() override;
 	void obtainGLresources() override;
 	void releaseGLresources() override;
@@ -163,7 +162,8 @@ class SphereLens {
 
 class MirrorElement : public RaTElement {
 	static int count;
-	HWND x, y, angle, d, spherical, r;
+	HWND xH, yH, zH, angleH, dH, sphericalH, rH;
+	float x, y, z, angle, d, r;
 
 	bool isSpherical();
 
@@ -185,19 +185,23 @@ public:
 class CameraElement : public RaTElement {
 	static int count;
 	static const int MAX_IMAGE_BUF = 1024 * 1024;
-	HWND x, y, z, sizeX, sizeY, resX, resY;
+	HWND xH, yH, zH, wH, hH, pixWH, pixHH;
+	float x, y, z, w, h;
+	int pixW = 128, pixH = 128;
 
 	GLuint feedbackVaoId = 0, feedbackBufferId = 0, fboId = 0, textureId = 0;
 	int textureBit = 3;
 	float* imageBuf = nullptr;
 	float pSize = 1.0f, pIntensity = 0.3f;//0.05f;
 
-	float camX, camY, camZ, camW, camH;
-	int camPixX = 128, camPixY = 128;
 
 	void changeSensorResolution();
 
 public:
+	struct CameraProps {
+		float mx, my, fx, fy, cx, cy, wx, wy, maxI, sumI;
+	};
+
 	CameraElement();
 	CameraElement(float x, float y, float z, float sx, float sy, int rx, int ry);
 	std::string getShader() override;
@@ -208,6 +212,7 @@ public:
 	void draw(Camera *camera) override;
 	void calcRays(int points);
 	void calcDistanceTo(Vector3 pos) override;
+	void getProps(CameraProps &sp);
 
 	~CameraElement();
 };

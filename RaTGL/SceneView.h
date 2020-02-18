@@ -14,8 +14,11 @@ class SceneView final : public GLwindow {
 	EmitterElement *emitter;
 	CameraElement *sensor;
 public:
+	CameraElement::CameraProps sp;
+
 	SceneView(HWND parent, Dims dim);
 
 	void setProps(int dots, EmitterElement *emitter, CameraElement *sensor);
 	void draw() override;
+	CameraElement::CameraProps getProps();
 };

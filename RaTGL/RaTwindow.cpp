@@ -29,7 +29,7 @@ RaTwindow::RaTwindow(HWND parent, const WCHAR *ctitle, WNDPROC cproc, UINT class
 	wcex.hInstance = hInst;
 	if (icon != 0) wcex.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(icon));
 	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	//wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wcex.lpszClassName = className.c_str();
 	check(RegisterClassEx(&wcex));
 

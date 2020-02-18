@@ -31,6 +31,14 @@ LRESULT CALLBACK FrameView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		if (frameView)
 			frameView->resize(LOWORD(lParam), HIWORD(lParam));
 		break;
+	case WM_ERASEBKGND: {
+		/*HDC hdc = (HDC)wParam;
+		RECT rc;
+		HBRUSH white = (HBRUSH)GetStockObject(WHITE_BRUSH);
+		GetClientRect(hWnd, &rc);
+		FillRect(hdc, &rc, white);*/
+		return 1L;
+	}
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
@@ -66,7 +74,7 @@ long FrameView::createToolBar() {
 	const int STD_ImageListID = 0, RaT_ImageListID = 1;
 
 	hWndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, NULL,
-		WS_CHILD | TBSTYLE_WRAPABLE, 0, 0, 0, 0, hwnd, NULL, hInst, NULL);
+		WS_CHILD | WS_CLIPCHILDREN | TBSTYLE_WRAPABLE | CCS_NODIVIDER, 0, 0, 0, 0, hwnd, NULL, hInst, NULL);
 
 	//SendMessage(hWndToolbar, CCM_SETVERSION, (WPARAM)5, 0);
 
@@ -75,9 +83,9 @@ long FrameView::createToolBar() {
 
 	TBBUTTON tbButtons[] =
 	{
-		{ MAKELONG(STD_FILENEW,  STD_ImageListID), IDM_NEW, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"New" },
+		{ MAKELONG(STD_FILENEW,  STD_ImageListID), IDM_NEW, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Сбросить" },
 		//{ MAKELONG(STD_FILEOPEN, STD_ImageListID), IDM_OPEN, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Open" },
-		{ MAKELONG(STD_FILESAVE, STD_ImageListID), IDM_SAVE, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Apply" },
+		{ MAKELONG(STD_FILESAVE, STD_ImageListID), IDM_SAVE, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Применить" },
 		{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
 		{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
 		{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
@@ -86,7 +94,7 @@ long FrameView::createToolBar() {
 		//{ MAKELONG(1,  RaT_ImageListID), IDM_CAMERA, 0, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Camera" },
 		//{ MAKELONG(2,  RaT_ImageListID), IDM_MEASURE, 0, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Measure" },
 		//{ MAKELONG(3,  RaT_ImageListID), IDM_SETTINGS, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Settings" },
-		{ MAKELONG(4,  RaT_ImageListID), IDM_CONSOLE, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Console" },
+		{ MAKELONG(4,  RaT_ImageListID), IDM_CONSOLE, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Консоль" },
 	};
 
 	HIMAGELIST STD_hImageList = ImageList_Create(16, 16, ILC_COLOR16 | ILC_MASK, 3, 0);

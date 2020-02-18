@@ -76,10 +76,10 @@ bool PropertiesView::isLast(std::list<RaTElement*> *l, RaTElement *cmp) {
 void PropertiesView::clearElements() {
 	for (auto v : elements) delete v;
 	elements.clear();
-	elements.push_back(new EmitterElement(0.001, 0.001, 100, 100, 5.0, 5.0, 1));
-	elements.push_back(new LensElement(LensElement::SPHERE, 10.0f, 0.0f, 0.0f, 0.0f, 20.0f, 0.5f, -20.0f, {0.0f}));
-	elements.push_back(new LensElement(LensElement::SPHERE, 90.0f, 0.0f, 0.0f, 0.0f, 20.0f, 2.0f, 20.0f, {0.0f}));
-	elements.push_back(new CameraElement(100.0f, 0.0f, 0.0f, 10.0f, 10.0f, 128, 128));
+	elements.push_back(new EmitterElement(0.0f, 0.0f, 100, 100, 5.0f, 5.0f, 1));
+	elements.push_back(new LensElement(LensElement::SPHERE, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 20.0f, 0.5f, -20.0f, {0.0f}));
+	elements.push_back(new LensElement(LensElement::SPHERE, 80.0f, 0.0f, 0.0f, 0.0f, 0.0f, 20.0f, 2.0f, 20.0f, {0.0f}));
+	elements.push_back(new CameraElement(10.0f, 0.0f, 0.0f, 10.0f, 10.0f, 128, 128));
 	update();
 	generate();
 }

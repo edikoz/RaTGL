@@ -3,6 +3,9 @@
 
 WorkspaceView *WorkspaceView::workspaceView = nullptr;
 
+constexpr int propW = 220;
+constexpr int measW = 200;
+
 LRESULT CALLBACK WorkspaceView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message)
 	{
@@ -20,17 +23,17 @@ LRESULT CALLBACK WorkspaceView::proc(HWND hWnd, UINT message, WPARAM wParam, LPA
 }
 
 WorkspaceView::WorkspaceView(HWND parent, Dims dim)
-	: RaTwindow(parent, L"WorkSpace", proc, CS_HREDRAW | CS_VREDRAW, WS_CHILD | WS_VISIBLE, dim)
+	: RaTwindow(parent, L"WorkSpace", proc, CS_HREDRAW | CS_VREDRAW, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN, dim)
 {
 	workspaceView = this;
-	int propW = dim.w / 3;
-	int glW = (dim.w - propW) / 2;
+	int glW = (dim.w - propW - measW);
 	int glH = dim.h / 2;
 	propertiesView = new PropertiesView(hwnd, { 0,0, propW, dim.h });
 	cameraView = new CameraView(hwnd, { propW, glH, glW, dim.h - glH });
-	sceneView = new SceneView(hwnd, { propW, 0, dim.w - glW, glH });
-	graphView = new GraphView(hwnd, { propW + glW, glH, glW, glH });
-	//measure = new Measure(hwnd, { propW + glW , glH, glW, dim.h - glH });
+	sceneView = new SceneView(hwnd, { propW, 0, glW, glH });
+	//graphView = new GraphView(hwnd, { propW + glW, glH, glW, glH });
+	//measureView = new MeasureView(hwnd, { propW + glW , glH, glW, dim.h - glH });
+	measureView = new MeasureView(hwnd, { propW + glW, 0, measW, dim.h });
 
 	newFile();
 }
@@ -38,17 +41,16 @@ WorkspaceView::WorkspaceView(HWND parent, Dims dim)
 void WorkspaceView::resize(int w, int h) {
 	dims.w = w;
 	dims.h = h;
-	HWND propHWND = propertiesView->getHWND();
-	RECT rect;
-	GetWindowRect(propHWND, &rect);
-	int noChangeW = rect.right - rect.left;
-	int glW = (w - noChangeW) / 2;
-	int glH = h / 2;
-	SetWindowPos(propHWND, NULL, 0, 0, noChangeW, h, NULL);
-	SetWindowPos(cameraView->getHWND(), NULL, noChangeW, glH, glW, h - glH, NULL);
-	SetWindowPos(sceneView->getHWND(), NULL, noChangeW, 0, w - noChangeW, glH, NULL);
-	SetWindowPos(graphView->getHWND(), NULL, noChangeW + glW, glH, glW, h - glH, NULL);
-	//SetWindowPos(measure->getHWND(), NULL, noChangeW + glW, glH, glW, h - glH, NULL);
+
+	int glW = (dims.w - propW - measW);
+	int glH = dims.h / 2;
+
+	SetWindowPos(propertiesView->getHWND(), NULL, 0, 0, propW, h, NULL);
+	SetWindowPos(cameraView->getHWND(), NULL, propW, glH, glW, dims.h - glH, NULL);
+	SetWindowPos(sceneView->getHWND(), NULL, propW, 0, glW, glH, NULL);
+	//SetWindowPos(graphView->getHWND(), NULL, noChangeW + glW, glH, glW, h - glH, NULL);
+	//SetWindowPos(measureView->getHWND(), NULL, noChangeW + glW, glH, glW, h - glH, NULL);
+	SetWindowPos(measureView->getHWND(), NULL, propW + glW, 0, measW, dims.h, NULL);
 }
 
 void WorkspaceView::newFile() {
@@ -71,5 +73,9 @@ void WorkspaceView::saveFile() {
 	sceneView->setProps(propertiesView->getNumDots(), propertiesView->getEmitter(), propertiesView->getSensor());
 
 	sceneView->draw();
+	CameraElement::CameraProps sp = sceneView->getProps();
+
 	cameraView->draw();
+
+	measureView->setParams(sp.mx, sp.my, sp.fx, sp.fy, sp.cx, sp.cy, sp.wx, sp.wy, sp.maxI, sp.sumI);
 }

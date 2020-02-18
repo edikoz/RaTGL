@@ -27,14 +27,14 @@ LRESULT CALLBACK GraphView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
 GraphView::GraphView(HWND parent, Dims dim)
 	: GLwindow(parent, L"GraphView", proc, dim) {
-
+	graphView = this;
 }
 
 void GraphView::draw() {
-	/*activateContext();
+	activateContext();
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glViewport(0, 0, dims.w, dims.h);
 	SwapBuffers(hdc);
-	deactivateContext();*/
+	deactivateContext();
 }

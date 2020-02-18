@@ -13,8 +13,8 @@ class WorkspaceView final : public RaTwindow {
 	PropertiesView *propertiesView;
 	SceneView *sceneView;
 	CameraView *cameraView;
-	GraphView *graphView;
-	//MeasureView *measureView;
+	//GraphView *graphView;
+	MeasureView *measureView;
 
 	void resize(int w, int h);
 

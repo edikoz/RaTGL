@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "ShaderText.h"
 
+float ShaderText::prevX;
+
 int ShaderText::ray_count, ShaderText::norm_count,
 ShaderText::consts_count, ShaderText::uniforms_count,
 ShaderText::vertices_count;
@@ -10,6 +12,7 @@ ShaderText::consts, ShaderText::emits, ShaderText::rays,
 ShaderText::ray_traces;
 
 void ShaderText::empty() {
+	prevX = 0;
 	uniforms = ""; consts = ""; emits = ""; rays = ""; ray_traces = "";
 	ray_count = norm_count = consts_count = uniforms_count = vertices_count = 0;
 }

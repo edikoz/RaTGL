@@ -2,11 +2,12 @@
 #include "RaTwindow.h"
 #include "RaTElement.h"
 
+//TODO: WS_EX_ACCEPTFILES 
+
 class PropertiesView final : public RaTwindow {
 	friend class RaTElement;
 	friend class CameraElement;
 
-	static PropertiesView *propertiesView;
 	std::list<RaTElement*> elements;
 	static LRESULT CALLBACK proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -19,13 +20,14 @@ class PropertiesView final : public RaTwindow {
 	void generateShader();
 	void generateBuffer();
 
-	HFONT hFont;
 	HBITMAP hbmpUnroll, hbmpRoll, hbmpDelete, hbmpDeleteDisabled, hbmpInsert, hbmpInsertDisabled;
 
 	static bool isFirst(std::list<RaTElement*> *l, RaTElement *cmp);
 	static bool isLast(std::list<RaTElement*> *l, RaTElement *cmp);
 
 public:
+	static PropertiesView *propertiesView;
+	HFONT hFont;
 	PropertiesView(HWND parent, Dims dim);
 
 	void clearElements();

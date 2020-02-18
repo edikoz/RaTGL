@@ -6,40 +6,77 @@ protected:
 	HWND propertyHWND;
 };
 
+//Property template
 template<typename T>
-class PropertyTemplate : public PropertyView {
+class PropertyTemplate : PropertyView {
 protected:
-	PropertyTemplate(const T &defaultValue);
 	T value;
+	PropertyTemplate(const T &defaultValue) : value(defaultValue) { };
 	virtual void displayValue() const = 0;
 
 public:
-	T getValue() const;
-	void setValue(const T &newValue);
+	typedef T valueT;
+
+	T getValue() const {
+		return value;
+	}
+
+	void setValue(const T &newValue) {
+		value = newValue;
+		displayValue();
+	}
+
+	std::string getText() {
+		return std::to_string(value);
+	}
 };
 
-class BooleanProperty : PropertyTemplate<bool> {
+//Array of properties template
+template<typename T>
+class ArrayProperty : PropertyView {
+	typedef typename T::valueT valueT;
+
+	T propertyView;
+	std::vector<valueT> valueArray;
+	HWND numIndex, numCount;
+
+public:
+	ArrayProperty(const wchar_t* name, int length) : propertyView(name, valueT{ 0 }) {
+		valueArray.resize(length, valueT{ 0 });
+	}
+
+	valueT getValue(int index) const {
+		return valueArray[index];
+	}
+	int length() const {
+		return valueArray.size();
+	}
+};
+
+//Properties from template
+
+class BooleanProperty : public PropertyTemplate<bool> {
 	void displayValue() const override;
 
 public:
 	BooleanProperty(const wchar_t* name, const bool &defaultValue);
 };
 
-class IntegerProperty : PropertyTemplate<int> {
+class IntegerProperty : public PropertyTemplate<int> {
 	void displayValue() const override;
 
 public:
 	IntegerProperty(const wchar_t* name, const int &defaultValue);
 };
 
-class FloatProperty : PropertyTemplate<float> {
+class FloatProperty : public PropertyTemplate<float> {
 	void displayValue() const override;
 
 public:
 	FloatProperty(const wchar_t* name, const float &defaultValue);
 };
 
-class EnumProperty : PropertyTemplate<int> {
+class EnumProperty : public PropertyTemplate<int> {
 	void displayValue() const override;
 
 public:
@@ -47,60 +84,22 @@ public:
 
 };
 
-class StringProperty : PropertyTemplate<std::string> {
+class StringProperty : public PropertyTemplate<std::string> {
 	void displayValue() const override;
 
 public:
 	StringProperty(const wchar_t* name, const std::string &defaultValue);
 };
 
+//Group Property
 /*
-template<template<typename> class T = PropertyTemplate>
-class ArrayProperty : PropertyView {
-	std::vector<PropertyTemplate<T>*> valueArray;
+class GroupProperty : public PropertyTemplate<int> {
+	EnumProperty enumProperty;
+	std::vector<std::vector<PropertyView>> tabs;
+
+	void displayValue() const override;
 
 public:
-	ArrayProperty();
-
-	T getValue(int index) const;
-	int length() const;
+	GroupProperty(const wchar_t* name, const bool &defaultValue);
 };
-
-
-template<template<typename> class T>
-ArrayProperty<T>::ArrayProperty() {
-
-}
-template<template<typename> class T>
-T ArrayProperty<T>::getValue(int index) const {
-	return T::value;
-}
-
-template<template<typename> class T>
-int ArrayProperty<T>::length() const {
-	return valueArray.size();
-}
 */
-
-typedef int tIType;
-typedef float tFType;
-
-class ArrayIntProperty : PropertyView {
-	std::vector<tIType> valueArray;
-
-public:
-	ArrayIntProperty(int length);
-
-	tIType getValue(int index) const;
-	int length() const;
-};
-
-class ArrayFloatProperty : PropertyView {
-	std::vector<tFType> valueArray;
-
-public:
-	ArrayFloatProperty(int length);
-
-	tFType getValue(int index) const;
-	int length() const;
-};

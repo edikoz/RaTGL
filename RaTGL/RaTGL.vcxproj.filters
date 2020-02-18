@@ -164,6 +164,21 @@
     <ClCompile Include="PropertyView.cpp">
       <Filter>Исходные файлы\Properties</Filter>
     </ClCompile>
+    <ClCompile Include="IntegerProperty.cpp">
+      <Filter>Исходные файлы\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="FloatProperty.cpp">
+      <Filter>Исходные файлы\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="BooleanProperty.cpp">
+      <Filter>Исходные файлы\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumProperty.cpp">
+      <Filter>Исходные файлы\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="StringProperty.cpp">
+      <Filter>Исходные файлы\Properties</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RaTGL.rc">

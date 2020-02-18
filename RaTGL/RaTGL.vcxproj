@@ -173,10 +173,14 @@
     <ClInclude Include="WorkspaceView.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BooleanProperty.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraView.cpp" />
     <ClCompile Include="CameraElement.cpp" />
     <ClCompile Include="EmitterElement.cpp" />
+    <ClCompile Include="EnumProperty.cpp" />
+    <ClCompile Include="FloatProperty.cpp" />
+    <ClCompile Include="IntegerProperty.cpp" />
     <ClCompile Include="LensElement.cpp" />
     <ClCompile Include="MirrorElement.cpp" />
     <ClCompile Include="FrameView.cpp" />
@@ -199,6 +203,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="StringProperty.cpp" />
     <ClCompile Include="WorkspaceView.cpp" />
   </ItemGroup>
   <ItemGroup>
