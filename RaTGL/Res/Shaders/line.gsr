@@ -121,9 +121,12 @@ void main() {
 
 	r3.origin = (100.000000 - r2.origin.x)*r2.direction / r2.direction.x + r2.origin;
 	r3.direction = r2.direction;
+
+
+	if (distance(r1.origin, vec3(10.000000, 0.000000, 0.000000)) < 20.000000 / 2.0)
+	if (distance(r2.origin, vec3(90.000000, 0.000000, 0.000000)) < 20.000000 / 2.0)
 	if (r3.origin.y > 0.000000 - 10.000000/2.0 && r3.origin.y < 0.000000 + 10.000000/2.0 && r3.origin.z > 0.000000 - 10.000000/2.0 && r3.origin.z < 0.000000 + 10.000000/2.0)
 
-//REPLACE_CHECK
 	{
 
 		emit(vec4(1.0, 0.0, 0.0, 1.0), vec4(r0.origin, 1.0));

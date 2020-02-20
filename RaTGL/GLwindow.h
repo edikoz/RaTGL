@@ -8,14 +8,16 @@ private:
 	static int pixelFormat;
 
 	class FakeWindow : public RaTwindow {
-		static LRESULT CALLBACK proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+		LRESULT CALLBACK handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) override;
+		void resize(int w, int h) override;
 
 	public:
 		FakeWindow();
 	};
 
 	class DummyWindow : public RaTwindow {
-		static LRESULT CALLBACK proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+		LRESULT CALLBACK handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) override;
+		void resize(int w, int h) override;
 
 	public:
 		DummyWindow();
@@ -27,7 +29,7 @@ protected:
 	void activateContext();
 	void deactivateContext();
 public:
-	GLwindow(HWND parent, const WCHAR *ctitle, WNDPROC proc, Dims dim);
+	GLwindow(const WCHAR *ctitle, HWND parent, Dims dim);
 
 	static void INIT();
 	static void activateGlobalContext();

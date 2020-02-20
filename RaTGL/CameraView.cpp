@@ -1,51 +1,54 @@
 #include "stdafx.h"
 #include "CameraView.h"
 
-CameraView *CameraView::cameraView = nullptr;
-
-LRESULT CALLBACK CameraView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK CameraView::handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message)
 	{
-	case WM_SIZE:
-		if (CameraView::cameraView) {
-			CameraView::cameraView->dims.w = LOWORD(lParam);
-			CameraView::cameraView->dims.h = HIWORD(lParam);
-		}
-		break;
 	case WM_PAINT:
-		if (cameraView)
 		{
 			PAINTSTRUCT ps;
 			BeginPaint(hWnd, &ps);
-			cameraView->draw();
 			EndPaint(hWnd, &ps);
+			draw();
 		}
-		break;
-	case WM_ERASEBKGND: return 1;
+		return 0;
+	case WM_ERASEBKGND:
+		return 1L;
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
 CameraView::CameraView(HWND parent, Dims dim)
-	: GLwindow(parent, L"CameraView", proc, dim) {
-	cameraView = this;
+	: GLwindow(L"CameraView", parent, dim) {
 
-	float cA[] = {
+	const float cA[] = {
 	-1.0f,-1.0f,0, 0.0f, 0.0f,
 	1.0f,-1.0f,0, 1.0f, 0.0f,
 	-1.0f,1.0f,0, 0.0f, 1.0f,
 	1.0f,1.0f,0, 1.0f, 1.0f
 	};
-	int attribFormat[] = { 3,2 };
+	const int attribFormat[] = { 3,2 };
 
 	activateContext();
-	Shader::createBuffer(GL_STATIC_DRAW, &vaoId, &bufferId, cA, sizeof(cA), attribFormat, 2);
+	Shader::createBuffer(GL_STATIC_DRAW, &vaoId, &bufferId, cA, sizeof(cA), attribFormat, sizeofArray(attribFormat));
 	deactivateContext();
+}
+
+void CameraView::resize(int w, int h) {
+	dims.w = w;
+	dims.h = h;
+
+	modelMat.setIdentity();
+	if (dims.w > dims.h)
+		modelMat.scale((float)dims.h / (float)dims.w, 1.0f, 0.0f);
+	else
+		modelMat.scale(1.0f, (float)dims.w / (float)dims.h, 0.0f);
 }
 
 void CameraView::draw() {
 	activateContext();
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, dims.w, dims.h);
 	glDisable(GL_MULTISAMPLE);
@@ -57,10 +60,8 @@ void CameraView::draw() {
 	glEnableVertexAttribArray(Shader::textureTriag::Input::Position);
 	glEnableVertexAttribArray(Shader::textureTriag::Input::TextureCoord);
 
-	Matrix4 identity;
-	identity.setIdentity();
 	glUniform1i(Shader::textureTriag::Uniform::uTexture0, 0);
-	glUniformMatrix4fv(Shader::textureTriag::Uniform::uMatHandle, 1, GL_FALSE, identity.getData());
+	glUniformMatrix4fv(Shader::textureTriag::Uniform::uMatHandle, 1, GL_FALSE, modelMat.getData());
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

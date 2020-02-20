@@ -1,23 +1,14 @@
 #include "stdafx.h"
 #include "GraphView.h"
 
-GraphView* GraphView::graphView = nullptr;
-
-LRESULT CALLBACK GraphView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK GraphView::handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
-	case WM_SIZE:
-		if (graphView) {
-			graphView->dims.w = LOWORD(lParam);
-			graphView->dims.h = HIWORD(lParam);
-		}
-		break;
 	case WM_PAINT:
-		if (graphView)
 		{
 			PAINTSTRUCT ps;
 			BeginPaint(hWnd, &ps);
-			graphView->draw();
 			EndPaint(hWnd, &ps);
+			draw();
 		}
 		break;
 	case WM_ERASEBKGND: return 1;
@@ -26,8 +17,8 @@ LRESULT CALLBACK GraphView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 }
 
 GraphView::GraphView(HWND parent, Dims dim)
-	: GLwindow(parent, L"GraphView", proc, dim) {
-	graphView = this;
+	: GLwindow(L"GraphView", parent, dim) {
+
 }
 
 void GraphView::draw() {
@@ -37,4 +28,9 @@ void GraphView::draw() {
 	glViewport(0, 0, dims.w, dims.h);
 	SwapBuffers(hdc);
 	deactivateContext();
+}
+
+void GraphView::resize(int w, int h) {
+	dims.w = w;
+	dims.h = h;
 }

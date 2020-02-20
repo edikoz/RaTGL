@@ -7,16 +7,13 @@
 #include "SceneView.h"
 
 class WorkspaceView final : public RaTwindow {
-	static LRESULT CALLBACK proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-	static WorkspaceView *workspaceView;
-
 	PropertiesView *propertiesView;
 	SceneView *sceneView;
 	CameraView *cameraView;
 	//GraphView *graphView;
 	MeasureView *measureView;
 
-	void resize(int w, int h);
+	void resize(int w, int h) override;
 
 public:
 	WorkspaceView(HWND parent, Dims dim);

@@ -3,9 +3,6 @@
 #include "RaTElement.h"
 
 class SceneView final : public GLwindow {
-	static LRESULT CALLBACK proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-	static SceneView* sceneView;
-
 	Camera camera;
 
 	float mouseSensitivity = 300.0f;
@@ -13,6 +10,10 @@ class SceneView final : public GLwindow {
 	int dots;
 	EmitterElement *emitter;
 	CameraElement *sensor;
+
+	LRESULT CALLBACK handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) override;
+	void resize(int w, int h) override;
+
 public:
 	CameraElement::CameraProps sp;
 

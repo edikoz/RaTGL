@@ -9,8 +9,8 @@ CameraElement::CameraElement(float cx, float cy, float cz, float csx, float csy,
 	xH = insertNumDoubleProp(L"Положение X", x = cx);
 	yH = insertNumDoubleProp(L"Положение Y", y = cy);
 	zH = insertNumDoubleProp(L"Положение Z", z = cz);
-	wH = insertNumDoubleProp(L"Размер Z", w = csx);
-	hH = insertNumDoubleProp(L"Размер Y", h = csy);
+	wH = insertNumDoubleProp(L"Ширина", w = csx);
+	hH = insertNumDoubleProp(L"Высота", h = csy);
 	pixWH = insertNumIntProp(L"Разрешение Z", pixW = crx);
 	pixHH = insertNumIntProp(L"Разрешение Y", pixH = cry);
 
@@ -44,13 +44,13 @@ std::string CameraElement::getShader() {
 	ret = replaceString(ret, "RAY", ray);
 	ret = replaceString(ret, "PLANE_POS_X", xPosBuffer);
 
-	std::string cond = "	if (RAY.origin.y > CAM_Y - CAM_H/2.0 && RAY.origin.y < CAM_Y + CAM_H/2.0 && RAY.origin.z > CAM_Z - CAM_W/2.0 && RAY.origin.z < CAM_Z + CAM_W/2.0)";
+	std::string cond = "	if (RAY.origin.y > CAM_Y - CAM_H/2.0 && RAY.origin.y < CAM_Y + CAM_H/2.0 && RAY.origin.z > CAM_Z - CAM_W/2.0 && RAY.origin.z < CAM_Z + CAM_W/2.0)\n";
 	cond = replaceString(cond, "RAY", ray);
 	cond = replaceString(cond, "CAM_Y", yPosBuffer);
 	cond = replaceString(cond, "CAM_Z", zPosBuffer);
 	cond = replaceString(cond, "CAM_W", wBuffer);
 	cond = replaceString(cond, "CAM_H", hBuffer);
-	ret += cond;
+	ShaderText::conditions += cond;
 
 	ShaderText::rays += ray + ",";
 

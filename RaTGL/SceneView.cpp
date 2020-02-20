@@ -3,63 +3,53 @@
 #include "FrameView.h"
 #include "PropertiesView.h"
 
-SceneView *SceneView::sceneView = nullptr;
-
-LRESULT CALLBACK SceneView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK SceneView::handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static bool wKey = false, aKey = false, sKey = false, dKey = false, fKey = false, rKey = false, shiftKey = false, spaceKey = false;
 	static float prevMx = 0, prevMy = 0;
 	static bool mouseON = false;
 	static bool timerON = false;
 
-	Camera *camera = nullptr;
-	if (sceneView) camera = &(sceneView->camera);
-
 	switch (message)
 	{
-	case WM_CREATE:
+	/*case WM_CREATE:
 	{
+		//CREATESTRUCT *pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
 		//LPCREATESTRUCT cs = reinterpret_cast<LPCREATESTRUCT>(lParam);
 		//camera->changeRatio((float)cs->cx / (float)cs->cy);
-	}
-	break;
-	case WM_SIZE:
-		if (sceneView) {
-			sceneView->dims.w = LOWORD(lParam);
-			sceneView->dims.h = HIWORD(lParam);
-			camera->changeRatio((float)sceneView->dims.w / (float)sceneView->dims.h);
-		}
-		break;
+		return 0;
+	}*/
 	case WM_PAINT:
-		if (sceneView)
-		{
-			PAINTSTRUCT ps;
-			BeginPaint(hWnd, &ps);
-			sceneView->draw();
-			EndPaint(hWnd, &ps);
-		}
-		break;
+	{
+		PAINTSTRUCT ps;
+		BeginPaint(hWnd, &ps);
+		EndPaint(hWnd, &ps);
+
+		draw();
+		return 0;
+	}
 	case WM_TIMER:
 	{
 		float moveValue = shiftKey ? 0.1f : 2.0f;
 		moveValue = moveValue * (spaceKey ? moveValue : 1.0f);
-		if (wKey) camera->moveDirection(moveValue, Camera::Direction::forward);
-		if (sKey) camera->moveDirection(moveValue, Camera::Direction::back);
-		if (aKey) camera->moveDirection(moveValue, Camera::Direction::left);
-		if (dKey) camera->moveDirection(moveValue, Camera::Direction::right);
-		if (rKey) camera->move(0, moveValue, 0);
-		if (fKey) camera->move(0, -moveValue, 0);
-		InvalidateRect(sceneView->getHWND(), NULL, TRUE);
-		UpdateWindow(sceneView->getHWND());
+		if (wKey) camera.moveDirection(moveValue, Camera::Direction::forward);
+		if (sKey) camera.moveDirection(moveValue, Camera::Direction::back);
+		if (aKey) camera.moveDirection(moveValue, Camera::Direction::left);
+		if (dKey) camera.moveDirection(moveValue, Camera::Direction::right);
+		if (rKey) camera.move(0, moveValue, 0);
+		if (fKey) camera.move(0, -moveValue, 0);
+
+		InvalidateRect(hWnd, NULL, TRUE);
+		UpdateWindow(hWnd);
+		return 0;
 	}
-	break;
 	case WM_KEYDOWN:
 		switch (wParam) {
-		case VK_ESCAPE: PostMessage(FrameView::frameView->getHWND(), WM_CLOSE, 0, 0); break;
+			//case VK_ESCAPE: PostMessage(FrameView::frameView->getHWND(), WM_CLOSE, 0, 0); break;
 		case 0x51: mouseON = !mouseON; break; //Q
 		case 0x4F: //O
-			camera->changeProjection();
-			InvalidateRect(sceneView->getHWND(), NULL, TRUE);
-			UpdateWindow(sceneView->getHWND());
+			camera.changeProjection();
+			InvalidateRect(hWnd, NULL, TRUE);
+			UpdateWindow(hWnd);
 			break;
 		case 0x57: wKey = true; break;//W
 		case 0x53: sKey = true; break;//S
@@ -74,7 +64,7 @@ LRESULT CALLBACK SceneView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			if (!timerON)
 				if (SetTimer(hWnd, 1, 30, NULL)) timerON = true;
 		}
-		break;
+		return 0;
 	case WM_KEYUP:
 		switch (wParam) {
 		case 0x57: wKey = false; break;//W
@@ -90,17 +80,18 @@ LRESULT CALLBACK SceneView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			if (timerON)
 				if (KillTimer(hWnd, 1)) timerON = false;
 		}
-		break;
+		return 0;
 	case WM_RBUTTONDOWN:
 	case WM_LBUTTONDOWN:
-		SetFocus(sceneView->getHWND()); break;
+		SetFocus(getHWND());
+		return 0;
 	case WM_MOUSEWHEEL: {
-		camera->increaseScale(-GET_WHEEL_DELTA_WPARAM(wParam));
-		InvalidateRect(sceneView->getHWND(), NULL, TRUE);
-		UpdateWindow(sceneView->getHWND());
+		camera.increaseScale(-GET_WHEEL_DELTA_WPARAM(wParam));
+		InvalidateRect(hWnd, NULL, TRUE);
+		UpdateWindow(hWnd);
 		//needRender = true;
+		return 0;
 	}
-						break;
 	case WM_MOUSEMOVE:
 	{
 		bool lb = wParam & MK_LBUTTON;
@@ -111,34 +102,38 @@ LRESULT CALLBACK SceneView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			if (dx != 0 || dy != 0) {
 
 				if (mouseON || rb) {
-					camera->rotate(dx / sceneView->mouseSensitivity, dy / sceneView->mouseSensitivity);
+					camera.rotate(dx / mouseSensitivity, dy / mouseSensitivity);
 				}
 
 				if (lb) {
-					camera->moveDirection(dx, Camera::Direction::forward);
-					camera->moveDirection(dy, Camera::Direction::left);
+					camera.moveDirection(dx, Camera::Direction::forward);
+					camera.moveDirection(dy, Camera::Direction::left);
 				}
 
-				InvalidateRect(sceneView->getHWND(), NULL, TRUE);
-				UpdateWindow(sceneView->getHWND());
+				InvalidateRect(hWnd, NULL, TRUE);
+				UpdateWindow(hWnd);
 				//needRender = true;
 			}
 		}
 		prevMx = GET_X_LPARAM(lParam);
 		prevMy = GET_Y_LPARAM(lParam);
+		return 0;
 	}
-	break;
-	case WM_ERASEBKGND: return 1;
+	case WM_ERASEBKGND:
+		return 1L;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-	return 0;
+}
+
+void SceneView::resize(int w, int h) {
+	dims.w = w;
+	dims.h = h;
+	camera.changeRatio((float)dims.w / (float)dims.h);
 }
 
 SceneView::SceneView(HWND parent, Dims dim)
-	: GLwindow(parent, L"SceneView", proc, dim) {
-	sceneView = this;
-
+	: GLwindow(L"SceneView", parent, dim) {
 	camera.moveTo(50.0f, 0.0f, 200.0f);
 	camera.rotateTo(-0.06f, 3.14f);
 }

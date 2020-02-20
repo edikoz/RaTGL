@@ -4,18 +4,20 @@
 
 #define MY_WS_FLOAT (WS_CHILD | WS_VISIBLE | ES_LEFT | ES_AUTOHSCROLL)
 
-MeasureView* MeasureView::measureView;
+LRESULT CALLBACK MeasureView::handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	static HDC hdc, memDC;
+	static HBITMAP memBM = NULL;
+	static HANDLE hOld;
 
-LRESULT CALLBACK MeasureView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message)
 	{
-	case WM_PAINT:
+	/*case WM_PAINT:
 		if (measureView) {
 			PAINTSTRUCT ps;
-			HDC hdc = BeginPaint(hWnd, &ps);
-			HDC memDC = CreateCompatibleDC(hdc);
-			HBITMAP memBM = CreateCompatibleBitmap(hdc, measureView->dims.w, measureView->dims.h);
-			HANDLE hOld = SelectObject(memDC, memBM);
+			hdc = BeginPaint(hWnd, &ps);
+			memDC = CreateCompatibleDC(hdc);
+			hOld = SelectObject(memDC, memBM);
+			memBM = CreateCompatibleBitmap(hdc, measureView->dims.w, measureView->dims.h);
 
 			RECT rc;
 			HBRUSH white = (HBRUSH)GetStockObject(WHITE_BRUSH);
@@ -24,29 +26,21 @@ LRESULT CALLBACK MeasureView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 			BitBlt(hdc, 0, 0, measureView->dims.w, measureView->dims.h, memDC, 0, 0, SRCCOPY);
 			SelectObject(memDC, hOld);
-			DeleteObject(memBM);
+
 			DeleteDC(memDC);
+			DeleteObject(memBM);
+
 			EndPaint(hWnd, &ps);
 		}
-	case WM_SIZE:
-		if (measureView) {
-			measureView->dims.w = LOWORD(lParam);
-			measureView->dims.h = HIWORD(lParam);
-		}
-		break;
-	/*case WM_ERASEBKGND:
-	{
-		/*HDC hdc = (HDC)wParam;
-		RECT rc;
-		HBRUSH white = (HBRUSH)GetStockObject(WHITE_BRUSH);
-		GetClientRect(hWnd, &rc);
-		FillRect(hdc, &rc, white);*/
-		//return 1L;
-	//}
+		break;*/
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-	return 0;
+}
+
+void MeasureView::resize(int w, int h) {
+	dims.w = w;
+	dims.h = h;
 }
 
 BOOL CALLBACK SetFontMeas(HWND child, LPARAM font) {
@@ -55,8 +49,7 @@ BOOL CALLBACK SetFontMeas(HWND child, LPARAM font) {
 }
 
 MeasureView::MeasureView(HWND parent, Dims dim)
-	: RaTwindow(parent, L"MeasureView", proc, CS_HREDRAW | CS_VREDRAW, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN, dim) {
-	measureView = this;
+	: RaTwindow(L"MeasureView", parent, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN, dim) {
 
 	int w = 60, h = 20, labW = 120;
 	int wPad = 5, hPad = 5;

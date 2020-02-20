@@ -2,13 +2,10 @@
 #include "resource.h"
 #include "FrameView.h"
 
-#define WIDTH 640
-#define HEIGHT 480
+constexpr int WIDTH = 640;
+constexpr int HEIGHT = 480;
 
-FrameView *FrameView::frameView = nullptr;
-
-LRESULT CALLBACK FrameView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
+LRESULT CALLBACK FrameView::handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -16,42 +13,30 @@ LRESULT CALLBACK FrameView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		int com = LOWORD(wParam);
 		switch (com) {
 		case IDM_NEW:
-			frameView->workspaceView->newFile();
+			workspaceView->newFile();
 			break;
 		case IDM_SAVE:
-			frameView->workspaceView->saveFile();
+			workspaceView->saveFile();
 			break;
 		case IDM_CONSOLE:
-			frameView->toggleConsole();
+			toggleConsole();
 			break;
 		}
-		break;
+		return 0;
 	}
-	case WM_SIZE:
-		if (frameView)
-			frameView->resize(LOWORD(lParam), HIWORD(lParam));
-		break;
-	case WM_ERASEBKGND: {
-		/*HDC hdc = (HDC)wParam;
-		RECT rc;
-		HBRUSH white = (HBRUSH)GetStockObject(WHITE_BRUSH);
-		GetClientRect(hWnd, &rc);
-		FillRect(hdc, &rc, white);*/
+	case WM_ERASEBKGND:
 		return 1L;
-	}
 	case WM_DESTROY:
 		PostQuitMessage(0);
-		break;
+		return 0;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-	return 0;
 }
 
 FrameView::FrameView()
-	: RaTwindow(L"RaTGL", proc, NULL, WS_OVERLAPPEDWINDOW, { 0,0,WIDTH,HEIGHT }, IDI_RATGL)
+	: RaTwindow(L"RaTGL", NULL, WS_OVERLAPPEDWINDOW, { 0,0,WIDTH,HEIGHT })
 {
-	frameView = this;
 	int height = createToolBar();
 	RECT rect;
 	GetClientRect(hwnd, &rect);
@@ -86,15 +71,15 @@ long FrameView::createToolBar() {
 		{ MAKELONG(STD_FILENEW,  STD_ImageListID), IDM_NEW, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Сбросить" },
 		//{ MAKELONG(STD_FILEOPEN, STD_ImageListID), IDM_OPEN, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Open" },
 		{ MAKELONG(STD_FILESAVE, STD_ImageListID), IDM_SAVE, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Применить" },
-		{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
-		{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
-		{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
-		{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
+		//{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
+		//{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
+		//{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
+		//{ 25, 0, 0, BTNS_SEP,{ 0 }, 0, 0 },
 		//{ MAKELONG(0,  RaT_ImageListID), IDM_GRAPH, 0, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Graph" },
 		//{ MAKELONG(1,  RaT_ImageListID), IDM_CAMERA, 0, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Camera" },
 		//{ MAKELONG(2,  RaT_ImageListID), IDM_MEASURE, 0, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Measure" },
 		//{ MAKELONG(3,  RaT_ImageListID), IDM_SETTINGS, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Settings" },
-		{ MAKELONG(4,  RaT_ImageListID), IDM_CONSOLE, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Консоль" },
+		//{ MAKELONG(4,  RaT_ImageListID), IDM_CONSOLE, TBSTATE_ENABLED, BTNS_AUTOSIZE,{ 0 }, 0, (INT_PTR)L"Консоль" },
 	};
 
 	HIMAGELIST STD_hImageList = ImageList_Create(16, 16, ILC_COLOR16 | ILC_MASK, 3, 0);
@@ -116,8 +101,6 @@ long FrameView::createToolBar() {
 }
 
 void FrameView::resize(int w, int h) {
-	dims.w = w;
-	dims.h = h;
 	SendMessage(hWndToolbar, TB_AUTOSIZE, 0, 0);
 	RECT rect;
 	GetWindowRect(hWndToolbar, &rect);

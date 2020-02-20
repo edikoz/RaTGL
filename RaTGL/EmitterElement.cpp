@@ -12,8 +12,8 @@ EmitterElement::EmitterElement(float cdivZ, float cdivY, int craysZ, int craysY,
 	rayS = insertNumIntProp(L"Лучей Y", craysY);
 	//angF = insertNumIntProp(L"Источников по Z", 1);
 	//angS = insertNumIntProp(L"Источников по Y", 1);
-	h = insertNumDoubleProp(L"Высота", ch);
 	l = insertNumDoubleProp(L"Ширина", cw);
+	h = insertNumDoubleProp(L"Высота", ch);
 	std::wstring types[] = { L"Гаусс", L"Прямоугольник", L"Эллипс" };
 	gridType = insertComboBoxProp(L"Тип Сетки", types, sizeofArray(types));
 	SendMessage(gridType, CB_SETCURSEL, (WPARAM)type, (LPARAM)0);

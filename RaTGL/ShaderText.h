@@ -11,7 +11,7 @@ public:
 
 	static std::string uniforms,
 		consts, emits, rays,
-		ray_traces;
+		ray_traces, conditions;
 
 	//Основа шейдера
 	static std::string shdrMain;

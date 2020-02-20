@@ -6,19 +6,7 @@
 
 PropertiesView *PropertiesView::propertiesView = nullptr;
 
-/*
-int PropertiesView::ray_count = 0;
-int PropertiesView::norm_count = 0;
-int PropertiesView::consts_count = 0;
-int PropertiesView::uniforms_count = 0;
-int PropertiesView::vertices_count = 0;
-std::string PropertiesView::uniforms = "";
-std::string PropertiesView::consts = "";
-std::string PropertiesView::emits = "";
-std::string PropertiesView::rays = "";
-std::string PropertiesView::ray_traces = "";*/
-
-LRESULT CALLBACK PropertiesView::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK PropertiesView::handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	tagSCROLLINFO si;
 	switch (message)
 	{
@@ -34,11 +22,7 @@ LRESULT CALLBACK PropertiesView::proc(HWND hWnd, UINT message, WPARAM wParam, LP
 	case WM_CREATE:
 		si = { sizeof(SCROLLINFO), SIF_ALL, 0, 1, 1, 0, 0 };
 		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
-		break;
-	case WM_SIZE:
-		if (propertiesView)
-			propertiesView->resize(LOWORD(lParam), HIWORD(lParam));
-		break;
+		return 0;
 	case WM_VSCROLL:
 		si.cbSize = sizeof(si);
 		si.fMask = SIF_ALL;
@@ -56,14 +40,13 @@ LRESULT CALLBACK PropertiesView::proc(HWND hWnd, UINT message, WPARAM wParam, LP
 		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
 		GetScrollInfo(hWnd, SB_VERT, &si);
 		propertiesView->updateElements();
-		break;
+		return 0;
 	case WM_DESTROY:
 		DeleteObject(propertiesView->hFont);
-		break;
+		return 0;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-	return 0;
 }
 
 bool PropertiesView::isFirst(std::list<RaTElement*> *l, RaTElement *cmp) {
@@ -148,6 +131,7 @@ void PropertiesView::generateShader() {
 	shader_RaT = replaceString(shader_RaT, "REPLACE_FUNCTIONS", ShaderText::shdrFunctions);
 	shader_RaT = replaceString(shader_RaT, "REPLACE_RAY_TRACE", shaderRT);
 	shader_RaT = replaceString(shader_RaT, "REPLACE_EMIT", ShaderText::emits);
+	shader_RaT = replaceString(shader_RaT, "REPLACE_CHECK", ShaderText::conditions);
 	shader_RaT = replaceString(shader_RaT, "MAX_VERTICES", std::to_string(ShaderText::vertices_count));
 
 	std::ofstream shaderFile("Res/Shaders/line.gsr", std::ios::out | std::ios_base::beg);
@@ -183,7 +167,8 @@ CameraElement* PropertiesView::getSensor() {
 }
 
 PropertiesView::PropertiesView(HWND parent, Dims dim)
-	: RaTwindow(parent, L"PropertiesView", proc, CS_HREDRAW | CS_VREDRAW, WS_CHILD | WS_VISIBLE | WS_VSCROLL, dim), scrollY(0)
+	: RaTwindow(L"PropertiesView", parent, WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_CLIPCHILDREN, dim), 
+	scrollY(0)
 {
 	propertiesView = this;
 

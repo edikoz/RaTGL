@@ -9,11 +9,11 @@ ShaderText::vertices_count;
 
 std::string ShaderText::uniforms,
 ShaderText::consts, ShaderText::emits, ShaderText::rays,
-ShaderText::ray_traces;
+ShaderText::ray_traces, ShaderText::conditions;
 
 void ShaderText::empty() {
 	prevX = 0;
-	uniforms = ""; consts = ""; emits = ""; rays = ""; ray_traces = "";
+	uniforms = ""; consts = ""; emits = ""; rays = ""; ray_traces = ""; conditions = "";
 	ray_count = norm_count = consts_count = uniforms_count = vertices_count = 0;
 }
 
@@ -53,7 +53,7 @@ void main() {
 
 REPLACE_RAY_TRACE
 
-//REPLACE_CHECK
+REPLACE_CHECK
 	{
 REPLACE_EMIT		
 	}

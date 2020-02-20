@@ -5,8 +5,8 @@ HDC GLwindow::globalHDC = 0;
 HGLRC GLwindow::hglrc = 0;
 int GLwindow::pixelFormat = 0;
 
-GLwindow::GLwindow(HWND parent, const WCHAR *ctitle, WNDPROC proc, Dims dim)
-	: RaTwindow(parent, ctitle, proc, CS_OWNDC, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN, dim) {
+GLwindow::GLwindow(const WCHAR *ctitle, HWND parent, Dims dim)
+	: RaTwindow(ctitle, parent, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, dim) {
 	PIXELFORMATDESCRIPTOR pfdNULL = {};
 	hdc = GetDC(hwnd);
 	SetPixelFormat(hdc, pixelFormat, &pfdNULL);
@@ -39,12 +39,13 @@ void GLwindow::deactivateContext() {
 	RETURNonERROR(wglMakeCurrent(hdc, 0), "Context disable error");
 }
 
-LRESULT CALLBACK GLwindow::FakeWindow::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK GLwindow::FakeWindow::handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
+void GLwindow::FakeWindow::resize(int w, int h) {}
 
 GLwindow::FakeWindow::FakeWindow()
-	: RaTwindow(NULL, L"EdFake", proc, NULL, WS_OVERLAPPEDWINDOW | WS_MAXIMIZE | WS_CLIPCHILDREN, { 0,0,0,0 }) {
+	: RaTwindow(L"EdFake", NULL, WS_OVERLAPPEDWINDOW | WS_MAXIMIZE | WS_CLIPCHILDREN, { 0,0,0,0 }) {
 	if (hwnd) {
 		HDC hdcFake = GetDC(hwnd);
 		if (hdcFake) {
@@ -54,7 +55,7 @@ GLwindow::FakeWindow::FakeWindow()
 			pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
 			pfd.iPixelType = PFD_TYPE_RGBA;
 			pfd.cColorBits = 32;
-			pfd.cDepthBits = 24; 
+			pfd.cDepthBits = 24;
 			pfd.cStencilBits = 8;
 			int iPixelFormat = ChoosePixelFormat(hdcFake, &pfd);
 			if (iPixelFormat) {
@@ -77,12 +78,13 @@ GLwindow::FakeWindow::FakeWindow()
 	}
 }
 
-LRESULT CALLBACK GLwindow::DummyWindow::proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK GLwindow::DummyWindow::handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
+void GLwindow::DummyWindow::resize(int w, int h) {}
 
 GLwindow::DummyWindow::DummyWindow()
-	: RaTwindow(NULL, L"EdDummy", proc, NULL, WS_OVERLAPPEDWINDOW | WS_MAXIMIZE | WS_CLIPCHILDREN, { 0,0,0,0 }) {
+	: RaTwindow(L"EdDummy", NULL, WS_OVERLAPPEDWINDOW | WS_MAXIMIZE | WS_CLIPCHILDREN, { 0,0,0,0 }) {
 	HDC hdc = GetDC(hwnd);
 	PIXELFORMATDESCRIPTOR pfdNULL = {};
 	const int attribPFList[] = {

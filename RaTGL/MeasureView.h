@@ -2,8 +2,8 @@
 #include "RaTwindow.h"
 
 class MeasureView final : public RaTwindow {
-	static LRESULT CALLBACK proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-	static MeasureView* measureView;
+	LRESULT CALLBACK handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) override;
+	void resize(int w, int h) override;
 
 	HWND mxH, myH, fxH, fyH, cxH, cyH, wxH, wyH, maxIH, sumIH;
 public:

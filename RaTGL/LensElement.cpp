@@ -46,17 +46,28 @@ std::string LensElement::getShader() {
 	std::string refrIndexBuffer = std::to_string(n);
 	std::string radiusBuffer = std::to_string(r);
 	std::string widthBuffer = std::to_string(d);
+	std::string wBuffer = std::to_string(w);
+	std::string hBuffer = std::to_string(h);
 
 	std::string ret1 = "", emit = "";
 	std::string rayp1 = "r" + std::to_string(ShaderText::ray_count - 1);
 	std::string ray = "r" + std::to_string(ShaderText::ray_count++);
 
 	switch (getType()) {
-	case PLANE:
+	case PLANE: {
 		ret1 = replaceString(ShaderText::shdrPlaneLens, "RAY_P", rayp1);
 		ret1 = replaceString(ret1, "RAY", ray);
 		ret1 = replaceString(ret1, "REFRACTION_INDEX", refrIndexBuffer);
 		ret1 = replaceString(ret1, "PLANE_POS_X", xPosBuffer);
+
+		std::string cond = "	if (RAY.origin.y > CAM_Y - CAM_H/2.0 && RAY.origin.y < CAM_Y + CAM_H/2.0 && RAY.origin.z > CAM_Z - CAM_W/2.0 && RAY.origin.z < CAM_Z + CAM_W/2.0)";
+		cond = replaceString(cond, "RAY", ray);
+		cond = replaceString(cond, "CAM_Y", yPosBuffer);
+		cond = replaceString(cond, "CAM_Z", zPosBuffer);
+		cond = replaceString(cond, "CAM_W", wBuffer);
+		cond = replaceString(cond, "CAM_H", hBuffer);
+		ShaderText::conditions += cond;
+	}
 		break;/*
 	case CYL_Z_ASPHER:
 	{
@@ -92,6 +103,14 @@ std::string LensElement::getShader() {
 		ret1 = replaceString(ret1, "NORM", "norm" + std::to_string(ShaderText::norm_count++));
 		ret1 = replaceString(ret1, "REFRACTION_INDEX", refrIndexBuffer);
 		ret1 = replaceString(ret1, "LENS_POS", lens_pos);
+
+
+		std::string lens_orig_pos = "vec3(" + xPosBuffer + ", " + yPosBuffer + ", " + zPosBuffer + ")";
+		std::string cond = "	if (distance(RAY.origin, LENS_ORIG_POS) < DIAM / 2.0)\n";
+		cond = replaceString(cond, "RAY", ray);
+		cond = replaceString(cond, "DIAM", widthBuffer);
+		cond = replaceString(cond, "LENS_ORIG_POS", lens_orig_pos);
+		ShaderText::conditions += cond;
 	}
 	break;
 	}

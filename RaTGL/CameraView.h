@@ -2,14 +2,13 @@
 #include "GLwindow.h"
 
 class CameraView final : public GLwindow {
-	static LRESULT CALLBACK proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	LRESULT CALLBACK handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) override;
+	void resize(int w, int h) override;
 
 	Matrix4 modelMat;
 	GLuint vaoId, bufferId;
 
 public:
-	static CameraView* cameraView;
-
 	CameraView(HWND parent, Dims dim);
 	void draw() override;
 
